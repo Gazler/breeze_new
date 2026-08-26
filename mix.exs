@@ -10,6 +10,8 @@ defmodule BreezeNew.MixProject do
       version: "0.1.0",
       elixir: "~> 1.16",
       start_permanent: Mix.env() == :prod,
+      escript: [main_module: BreezeNew.CLI],
+      aliases: aliases(),
       deps: deps()
     ]
   end
@@ -29,4 +31,16 @@ defmodule BreezeNew.MixProject do
       {:back_breeze, @back_breeze_requirement}
     ]
   end
+
+  defp aliases do
+    [run: [&run_cli/1]]
+  end
+
+  defp run_cli(args) do
+    Mix.Task.run("app.start")
+    BreezeNew.CLI.main(drop_separator(args))
+  end
+
+  defp drop_separator(["--" | args]), do: args
+  defp drop_separator(args), do: args
 end
