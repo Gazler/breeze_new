@@ -5,7 +5,7 @@ defmodule Mix.Tasks.BreezeNew.Preview do
   @requirements ["app.config"]
 
   @moduledoc """
-  Runs a starter directly from the current templates.
+  Runs one of the non-SSH starters directly from the current templates.
 
       mix breeze_new.preview counter
       mix breeze_new.preview list

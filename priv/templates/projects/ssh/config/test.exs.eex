@@ -1,0 +1,9 @@
+import Config
+
+config :<%= @app_name %>,
+  start_server: false,
+  ssh: [
+    auth: :none,
+    allow_insecure_auth: true,
+    system_dir: Path.expand("../priv/ssh", __DIR__)
+  ]

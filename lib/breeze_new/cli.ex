@@ -139,7 +139,7 @@ defmodule BreezeNew.CLI do
 
         write_line(
           :stdio,
-          "\nNext steps:\n  cd #{Path.relative_to_cwd(result.target)}#{deps_step}\n  mix run --no-halt#{timeline_run_step(config)}",
+          "\nNext steps:\n  cd #{Path.relative_to_cwd(result.target)}#{deps_step}#{ssh_setup_step(config)}\n  mix run --no-halt#{local_run_step(config)}#{timeline_run_step(config)}",
           tui?
         )
 
@@ -151,6 +151,15 @@ defmodule BreezeNew.CLI do
 
   defp prepare_terminal_output(true), do: IO.write("\r\e[0m")
   defp prepare_terminal_output(false), do: :ok
+
+  defp ssh_setup_step(%Config{template: :ssh}), do: "\n  mix termite.ssh.gen_host_key"
+  defp ssh_setup_step(_config), do: ""
+
+  defp local_run_step(%Config{template: :ssh, app_name: app_name}) do
+    "\n\nOr run the view locally without SSH:\n  mix #{app_name}.local"
+  end
+
+  defp local_run_step(_config), do: ""
 
   defp timeline_run_step(%Config{timeline: true}) do
     "\n\nInspect and rewind it from another terminal:\n  mix breeze.inspector"
@@ -183,7 +192,7 @@ defmodule BreezeNew.CLI do
     unless --no-tui is used.
 
     Options:
-      --template blank|counter|list|kitchen_sink
+      --template blank|counter|list|kitchen_sink|ssh
                                     Starter application (default: counter)
       --theme THEME                 Initial theme: dracula, commander, gruvbox,
                                     catppuccin, nord, solarized_light,

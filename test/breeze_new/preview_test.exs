@@ -5,7 +5,7 @@ defmodule BreezeNew.PreviewTest do
 
   alias BreezeNew.Preview
 
-  test "lists every preview starter" do
+  test "lists every non-SSH starter" do
     assert Preview.templates() == [:blank, :counter, :list, :kitchen_sink]
   end
 
@@ -45,7 +45,10 @@ defmodule BreezeNew.PreviewTest do
     Preview.unload(preview)
   end
 
-  test "rejects unknown starters" do
+  test "rejects SSH and unknown starters" do
+    assert {:error, message} = Preview.prepare(:ssh)
+    assert message =~ "SSH starter is not available"
+
     assert {:error, message} = Preview.prepare("missing")
     assert message =~ "unknown preview starter"
     assert message =~ "blank, counter, list, kitchen_sink"
@@ -79,14 +82,14 @@ defmodule BreezeNew.PreviewTest do
   end
 
   test "the Mix task reports unsupported invocations" do
-    invalid_output =
+    ssh_output =
       capture_io(fn ->
-        assert_raise Mix.Error, ~r/unknown preview starter/, fn ->
-          Mix.Tasks.BreezeNew.Preview.run(["missing"])
+        assert_raise Mix.Error, ~r/SSH starter is not available/, fn ->
+          Mix.Tasks.BreezeNew.Preview.run(["ssh"])
         end
       end)
 
-    assert invalid_output =~ "Previewing missing"
+    assert ssh_output =~ "Previewing ssh"
 
     assert_raise Mix.Error, ~r/expected one starter/, fn ->
       Mix.Tasks.BreezeNew.Preview.run([])

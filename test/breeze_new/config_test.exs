@@ -65,13 +65,16 @@ defmodule BreezeNew.ConfigTest do
   end
 
   test "exposes the blank starter before the example starters" do
-    assert Config.templates() == [:blank, :counter, :list, :kitchen_sink]
+    assert Config.templates() == [:blank, :counter, :list, :kitchen_sink, :ssh]
 
     assert {:ok, %{template: :blank, storybook: false}} =
              Config.new("valid", template: "blank")
 
     assert {:ok, %{storybook: false}} =
              Config.new("valid", template: :blank, storybook: true)
+
+    assert {:ok, %{template: :ssh, storybook: true}} =
+             Config.new("valid", template: "ssh")
 
     assert {:ok, %{template: :kitchen_sink, storybook: true}} =
              Config.new("valid", template: "kitchen_sink")
@@ -91,7 +94,7 @@ defmodule BreezeNew.ConfigTest do
 
     assert message =~ "Inspector must be enabled when Timeline is enabled"
 
-    {:ok, config} = Config.new("valid", template: "list")
+    {:ok, config} = Config.new("valid", template: "ssh")
     assert %{timeline: true, breeze_dep: {:hex, "~> 0.5.0"}} = Config.put_timeline(config, true)
 
     pinned_config = %{config | breeze_dep: {:hex, "== 0.5.0"}}
@@ -168,6 +171,16 @@ defmodule BreezeNew.ConfigTest do
              Config.validate(%{config | breeze_timeline_dep: {:path, "deps/breeze_timeline"}})
 
     assert message == "Breeze Timeline dependency must be {:hex, requirement}"
+
+    assert {:error, message} =
+             Config.validate(%{config | termite_ssh_dep: {:hex, "not a req"}})
+
+    assert message =~ "invalid Termite SSH version requirement"
+
+    assert {:error, message} =
+             Config.validate(%{config | termite_ssh_dep: {:path, "deps/termite_ssh"}})
+
+    assert message == "Termite SSH dependency must be {:hex, requirement}"
   end
 
   defp tmp_target(name) do

@@ -1,0 +1,43 @@
+defmodule <%= @module_name %>.SSHSession do
+  @moduledoc "Runs one Breeze server for an authenticated SSH session."
+
+  def start_link(opts) do
+    session = Keyword.fetch!(opts, :session)
+    Task.start_link(fn -> run(session) end)
+  end
+
+  defp run(session) do
+    terminal = Termite.SSH.terminal(session)
+
+    case <%= @module_name %>.Server.start_link(
+           terminal: terminal,
+           start_opts: [username: session.username],
+           halt_fun: fn -> :ok end
+         ) do
+      {:ok, server} ->
+        monitor = Process.monitor(server)
+        forward_input(session, terminal.reader, server, monitor)
+
+      {:error, reason} ->
+        exit(reason)
+    end
+  end
+
+  # Termite.SSH.terminal/1 attaches input to this entrypoint process. Breeze
+  # owns its own input router, so forward terminal messages to that process.
+  defp forward_input(session, reader, server, monitor) do
+    receive do
+      {^reader, _payload} = message ->
+        send(server, message)
+        forward_input(session, reader, server, monitor)
+
+      {:DOWN, ^monitor, :process, ^server, reason} ->
+        Termite.SSH.disconnect(session)
+        finish(reason)
+    end
+  end
+
+  defp finish(reason) when reason in [:normal, :shutdown], do: :ok
+  defp finish({:shutdown, _reason}), do: :ok
+  defp finish(reason), do: exit(reason)
+end

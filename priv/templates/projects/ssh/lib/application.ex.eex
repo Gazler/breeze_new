@@ -1,0 +1,63 @@
+defmodule <%= @module_name %>.Application do
+  use Application
+
+  require Logger
+
+  @impl true
+  def start(_type, _args) do
+    start_server? = start_server?()
+    children = if start_server?, do: [ssh_child()], else: []
+
+    with {:ok, supervisor} <-
+           Supervisor.start_link(children,
+             strategy: :one_for_one,
+             name: <%= @module_name %>.Supervisor
+           ) do
+      if start_server?, do: log_ssh_command()
+      {:ok, supervisor}
+    end
+  end
+
+  defp ssh_child do
+    options =
+      :<%= @app_name %>
+      |> Application.fetch_env!(:ssh)
+      |> Keyword.merge(
+        name: <%= @module_name %>.SSH,
+        entrypoint: {<%= @module_name %>.SSHSession, []}
+      )
+
+    {Termite.SSH, options}
+  end
+
+  defp log_ssh_command do
+    options = Application.fetch_env!(:<%= @app_name %>, :ssh)
+    auth = Keyword.fetch!(options, :auth)
+    port = Keyword.get(options, :port, 2222)
+    host = options |> Keyword.get(:ip, {127, 0, 0, 1}) |> ssh_host()
+
+    command =
+      "ssh" <>
+        auth_flags(auth) <>
+        " -p " <> to_string(port) <> " " <> ssh_user(auth) <> "@" <> host
+
+    Logger.debug("SSH listener ready. Connect with:\n  " <> command)
+  end
+
+  defp auth_flags(:none),
+    do: " -o PreferredAuthentications=none -o PubkeyAuthentication=no"
+
+  defp auth_flags(_auth), do: ""
+
+  defp ssh_user(:none), do: "demo"
+  defp ssh_user({:public_key, [{username, _directory} | _users]}), do: username
+  defp ssh_user([{username, _password} | _users]), do: username
+  defp ssh_user(_auth), do: "user"
+
+  defp ssh_host({127, 0, 0, 1}), do: "localhost"
+  defp ssh_host({0, 0, 0, 0}), do: "localhost"
+  defp ssh_host(ip) when is_tuple(ip), do: ip |> :inet.ntoa() |> to_string()
+  defp ssh_host(host), do: to_string(host)
+
+  defp start_server?, do: Application.get_env(:<%= @app_name %>, :start_server, true)
+end

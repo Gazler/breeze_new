@@ -1,0 +1,16 @@
+import Config
+
+if config_env() == :prod do
+  username = System.fetch_env!("<%= @env_prefix %>_SSH_USER")
+  authorized_keys_dir = System.fetch_env!("<%= @env_prefix %>_SSH_AUTHORIZED_KEYS_DIR")
+  system_dir = System.fetch_env!("<%= @env_prefix %>_SSH_SYSTEM_DIR")
+  port = System.get_env("<%= @env_prefix %>_SSH_PORT", "2222") |> String.to_integer()
+
+  config :<%= @app_name %>,
+    ssh: [
+      port: port,
+      ip: {0, 0, 0, 0},
+      auth: {:public_key, [{username, authorized_keys_dir}]},
+      system_dir: system_dir
+    ]
+end

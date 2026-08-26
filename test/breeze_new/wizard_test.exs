@@ -169,6 +169,10 @@ defmodule BreezeNew.WizardTest do
     assert rendered =~ "A gallery of every Breeze component."
     assert rendered |> strip_ansi() |> panel_height() == initial_height
 
+    Breeze.Test.event(session, "template_changed", %{value: "ssh"})
+    assert Breeze.Test.render!(session) =~ "A multi-user counter served over SSH."
+    assert Breeze.Test.metadata(session).assigns.config.storybook
+
     Breeze.Test.event(session, "template_changed", %{value: "blank"})
     rendered = Breeze.Test.render!(session)
     assert rendered =~ "A minimal Breeze view with no example interface."
@@ -187,7 +191,7 @@ defmodule BreezeNew.WizardTest do
     session = start_wizard()
     on_exit(fn -> Breeze.Test.stop(session) end)
 
-    Enum.each(~w(blank counter list kitchen_sink), fn template ->
+    Enum.each(~w(blank counter list kitchen_sink ssh), fn template ->
       Breeze.Test.event(session, "template_changed", %{value: template})
       Breeze.Test.event(session, "timeline_changed", %{value: true})
 
@@ -244,6 +248,7 @@ defmodule BreezeNew.WizardTest do
     assert opened =~ "Counter"
     assert opened =~ "List"
     assert opened =~ "Kitchen Sink"
+    assert opened =~ "SSH"
     assert opened =~ "Theme"
     assert panel_bottom_row(opened) == panel_bottom_row(closed)
   end

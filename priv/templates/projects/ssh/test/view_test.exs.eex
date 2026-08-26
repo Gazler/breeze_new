@@ -1,0 +1,18 @@
+defmodule <%= @module_name %>.ViewTest do
+  use ExUnit.Case, async: true
+
+  test "shows the session username and increments the counter" do
+    session =
+      Breeze.Test.start!(<%= @module_name %>.View,
+        size: {50, 10},
+        start_opts: [username: "alice"]
+      )
+
+    on_exit(fn -> Breeze.Test.stop(session) end)
+
+    assert Breeze.Test.render!(session) =~ "Connected as alice"
+    assert Breeze.Test.render!(session) =~ "Counter: 0"
+    Breeze.Test.input(session, "ArrowUp")
+    assert Breeze.Test.render!(session) =~ "Counter: 1"
+  end
+end

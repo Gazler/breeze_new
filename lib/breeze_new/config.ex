@@ -2,7 +2,7 @@ defmodule BreezeNew.Config do
   @moduledoc "Configuration shared by the TUI and non-interactive generator."
 
   @breeze_requirement "~> 0.5.0"
-  @templates [:blank, :counter, :list, :kitchen_sink]
+  @templates [:blank, :counter, :list, :kitchen_sink, :ssh]
   @themes [
     :dracula,
     :commander,
@@ -31,13 +31,14 @@ defmodule BreezeNew.Config do
             init_git: true,
             commit_message: "Initial commit",
             breeze_dep: {:hex, @breeze_requirement},
-            breeze_timeline_dep: {:hex, "~> 0.1.0"}
+            breeze_timeline_dep: {:hex, "~> 0.1.0"},
+            termite_ssh_dep: {:hex, "~> 0.1.0"}
 
   @type t :: %__MODULE__{
           app_name: String.t(),
           module_name: String.t(),
           target: String.t(),
-          template: :blank | :counter | :list | :kitchen_sink,
+          template: :blank | :counter | :list | :kitchen_sink | :ssh,
           theme:
             :dracula
             | :commander
@@ -58,7 +59,8 @@ defmodule BreezeNew.Config do
           init_git: boolean(),
           commit_message: String.t(),
           breeze_dep: {:hex, String.t()},
-          breeze_timeline_dep: {:hex, String.t()}
+          breeze_timeline_dep: {:hex, String.t()},
+          termite_ssh_dep: {:hex, String.t()}
         }
 
   @spec templates() :: [atom()]
@@ -125,7 +127,8 @@ defmodule BreezeNew.Config do
          init_git: Keyword.get(opts, :init_git, true),
          commit_message: Keyword.get(opts, :commit_message, "Initial commit"),
          breeze_dep: Keyword.get(opts, :breeze_dep, {:hex, @breeze_requirement}),
-         breeze_timeline_dep: Keyword.get(opts, :breeze_timeline_dep, {:hex, "~> 0.1.0"})
+         breeze_timeline_dep: Keyword.get(opts, :breeze_timeline_dep, {:hex, "~> 0.1.0"}),
+         termite_ssh_dep: Keyword.get(opts, :termite_ssh_dep, {:hex, "~> 0.1.0"})
        }}
     end
   end
@@ -146,6 +149,7 @@ defmodule BreezeNew.Config do
          :ok <- validate_storybook(config),
          :ok <- validate_dependency(:breeze, config.breeze_dep),
          :ok <- validate_dependency(:breeze_timeline, config.breeze_timeline_dep),
+         :ok <- validate_dependency(:termite_ssh, config.termite_ssh_dep),
          :ok <- validate_commit_message(config) do
       :ok
     end
@@ -242,6 +246,7 @@ defmodule BreezeNew.Config do
 
   defp dependency_label(:breeze), do: "Breeze"
   defp dependency_label(:breeze_timeline), do: "Breeze Timeline"
+  defp dependency_label(:termite_ssh), do: "Termite SSH"
 
   defp validate_commit_message(%{init_git: true, commit_message: message})
        when is_binary(message) do

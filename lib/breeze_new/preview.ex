@@ -81,12 +81,16 @@ defmodule BreezeNew.Preview do
     :ok
   end
 
+  defp normalize_template(:ssh),
+    do: {:error, "the SSH starter is not available in preview mode"}
+
   defp normalize_template(template) when template in @templates, do: {:ok, template}
 
   defp normalize_template(template) when is_binary(template) do
     normalized = String.replace(template, "-", "_")
 
     case Enum.find(@templates, &(Atom.to_string(&1) == normalized)) do
+      nil when normalized == "ssh" -> normalize_template(:ssh)
       nil -> invalid_template(template)
       template -> {:ok, template}
     end

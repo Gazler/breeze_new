@@ -25,6 +25,7 @@ defmodule BreezeNew.GeneratorTest do
       application_file = File.read!(Path.join(target, "lib/sample_app/application.ex"))
       error_view = File.read!(Path.join(target, "lib/sample_app/error_view.ex"))
       dev_config = File.read!(Path.join(target, "config/dev.exs"))
+      test_config = File.read!(Path.join(target, "config/test.exs"))
       prod_config = File.read!(Path.join(target, "config/prod.exs"))
       readme = File.read!(Path.join(target, "README.md"))
       formatter = File.read!(Path.join(target, ".formatter.exs"))
@@ -35,7 +36,12 @@ defmodule BreezeNew.GeneratorTest do
                "expected #{relative_path} not to contain a typespec"
       end
 
-      server_options_file = application_file
+      server_options_file =
+        if @template == :ssh do
+          File.read!(Path.join(target, "lib/sample_app/server.ex"))
+        else
+          application_file
+        end
 
       assert mix_file =~ "defmodule SampleApp.MixProject"
       assert [_, elixir_requirement] = Regex.run(~r/elixir: "([^"]+)"/, mix_file)
@@ -129,6 +135,52 @@ defmodule BreezeNew.GeneratorTest do
       assert IO.iodata_to_binary(Code.format_string!(server_options_file)) <> "\n" ==
                server_options_file
 
+      if @template == :ssh do
+        runtime_config = File.read!(Path.join(target, "config/runtime.exs"))
+        ssh_session = File.read!(Path.join(target, "lib/sample_app/ssh_session.ex"))
+        local_task = File.read!(Path.join(target, "lib/mix/tasks/sample_app.local.ex"))
+
+        assert "config/runtime.exs" in result.files
+        assert "lib/sample_app/server.ex" in result.files
+        assert "lib/sample_app/ssh_session.ex" in result.files
+        assert "lib/mix/tasks/sample_app.local.ex" in result.files
+        assert "priv/ssh/.gitkeep" in result.files
+        assert mix_file =~ ~s({:termite_ssh, "~> 0.1.0"})
+        assert application_file =~ "{Termite.SSH, options}"
+        assert application_file =~ "entrypoint: {SampleApp.SSHSession, []}"
+        assert application_file =~ "Logger.debug(\"SSH listener ready. Connect with:"
+        assert application_file =~ "PreferredAuthentications=none"
+        assert application_file =~ ~S|" -p " <> to_string(port)|
+        assert application_file =~ ~S|defp ssh_user(:none), do: "demo"|
+        assert ssh_session =~ "Termite.SSH.terminal(session)"
+        assert ssh_session =~ "send(server, message)"
+        assert ssh_session =~ "Termite.SSH.disconnect(session)"
+        assert dev_config =~ "auth: :none"
+        assert dev_config =~ "allow_insecure_auth: true"
+        assert test_config =~ "auth: :none"
+        assert test_config =~ "start_server: false"
+        assert runtime_config =~ "SAMPLE_APP_SSH_AUTHORIZED_KEYS_DIR"
+        assert runtime_config =~ "auth: {:public_key, [{username, authorized_keys_dir}]}"
+        refute runtime_config =~ "allow_insecure_auth"
+        assert local_task =~ "defmodule Mix.Tasks.SampleApp.Local"
+        assert local_task =~ "Application.put_env(:sample_app, :start_server, false)"
+        assert local_task =~ ~s|Mix.Task.run("app.start")|
+        refute local_task =~ "Application.ensure_all_started"
+        assert local_task =~ "SampleApp.Server.run("
+        assert readme =~ "mix sample_app.local"
+        assert readme =~ "mix termite.ssh.gen_host_key"
+        assert readme =~ "SAMPLE_APP_SSH_SYSTEM_DIR"
+        assert {:ok, _ast} = Code.string_to_quoted(ssh_session)
+        assert {:ok, _ast} = Code.string_to_quoted(local_task)
+        assert {:ok, _ast} = Code.string_to_quoted(runtime_config)
+
+        assert IO.iodata_to_binary(Code.format_string!(ssh_session)) <> "\n" == ssh_session
+        assert IO.iodata_to_binary(Code.format_string!(local_task)) <> "\n" == local_task
+      else
+        refute "config/runtime.exs" in result.files
+        refute mix_file =~ ":termite_ssh"
+      end
+
       if @template == :kitchen_sink do
         assert "lib/sample_app/kitchen_sink.ex" in result.files
         assert readme =~ "## Browse the component gallery"
@@ -162,6 +214,13 @@ defmodule BreezeNew.GeneratorTest do
       assert root_config =~ "start_disksup: false"
       assert readme =~ "sizes its render cache dynamically"
       assert readme =~ "starts OTP's `:os_mon` service"
+
+      if @dynamic_cache_template == :ssh do
+        local_task = File.read!(Path.join(target, "lib/mix/tasks/sample_app.local.ex"))
+
+        assert local_task =~ ~s|Mix.Task.run("app.start")|
+        refute local_task =~ "Application.ensure_all_started"
+      end
 
       assert IO.iodata_to_binary(Code.format_string!(mix_file)) <> "\n" == mix_file
       assert IO.iodata_to_binary(Code.format_string!(root_config)) <> "\n" == root_config
@@ -219,6 +278,18 @@ defmodule BreezeNew.GeneratorTest do
       assert readme =~ "Timeline recording is disabled in production."
       refute prod_config =~ "Breeze.Timeline"
 
+      if @timeline_template == :ssh do
+        local_task = File.read!(Path.join(target, "lib/mix/tasks/sample_app.local.ex"))
+
+        assert mix_file =~ ":termite_ssh"
+        assert dev_config =~ "auth: :none"
+        assert local_task =~ "Application.put_env(:sample_app, :start_server, false)"
+        assert local_task =~ ~s|Mix.Task.run("app.start")|
+        refute local_task =~ "Application.ensure_all_started"
+        assert {:ok, _ast} = Code.string_to_quoted(local_task)
+        assert IO.iodata_to_binary(Code.format_string!(local_task)) <> "\n" == local_task
+      end
+
       assert IO.iodata_to_binary(Code.format_string!(mix_file)) <> "\n" == mix_file
       assert IO.iodata_to_binary(Code.format_string!(dev_config)) <> "\n" == dev_config
     end
@@ -244,7 +315,12 @@ defmodule BreezeNew.GeneratorTest do
       module_name = Macro.camelize(app_name)
       view_module = Module.concat([module_name, "View"])
 
-      callback_module = Module.concat([module_name, "Application"])
+      callback_module =
+        if @theme_cycle_template == :ssh do
+          Module.concat([module_name, "Server"])
+        else
+          Module.concat([module_name, "Application"])
+        end
 
       if @theme_cycle_template == :kitchen_sink do
         kitchen_sink_module = Module.concat([module_name, "KitchenSink"])
@@ -259,7 +335,10 @@ defmodule BreezeNew.GeneratorTest do
       assert [{^view_module, _bytecode}] =
                Code.compile_string(files["lib/#{app_name}/view.ex"])
 
-      callback_path = "lib/#{app_name}/application.ex"
+      callback_path =
+        if @theme_cycle_template == :ssh,
+          do: "lib/#{app_name}/server.ex",
+          else: "lib/#{app_name}/application.ex"
 
       assert [{^callback_module, _bytecode}] =
                Code.compile_string(files[callback_path])
@@ -552,7 +631,10 @@ defmodule BreezeNew.GeneratorTest do
                  )
                )
 
-      server_options_path = "lib/sample_app/application.ex"
+      server_options_path =
+        if @no_theme_cycle_template == :ssh,
+          do: "lib/sample_app/server.ex",
+          else: "lib/sample_app/application.ex"
 
       server_options = File.read!(Path.join(target, server_options_path))
       readme = File.read!(Path.join(target, "README.md"))
@@ -649,6 +731,7 @@ defmodule BreezeNew.GeneratorTest do
   defp expected_marker(:counter), do: ~s(<.metric label="Counter" value={@counter}/>)
   defp expected_marker(:list), do: ~s(id="tasks")
   defp expected_marker(:kitchen_sink), do: ~s(id="kitchen-sink")
+  defp expected_marker(:ssh), do: "Connected as {@username}"
 
   defp tmp_target(name) do
     Path.join(System.tmp_dir!(), "breeze_new_#{name}_#{System.unique_integer([:positive])}")

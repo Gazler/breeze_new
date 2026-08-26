@@ -1,0 +1,14 @@
+import Config<%= if @storybook, do: "\n\nconfig :#{@app_name}, storybook_theme: #{@theme_name}" %>
+
+config :<%= @app_name %>,
+  inspector: <%= inspect(@inspector) %>,
+  logger: <%= inspect(@logger) %>,
+  reload: <%= inspect(@live_reload) %>,
+  render_errors: [view: Breeze.ErrorView],
+  ssh: [
+    port: 2222,
+    ip: {127, 0, 0, 1},
+    auth: :none,
+    allow_insecure_auth: true,
+    system_dir: Path.expand("../priv/ssh", __DIR__)
+  ]

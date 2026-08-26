@@ -42,7 +42,7 @@ defmodule BreezeNew.CLITest do
   test "returns help and version without a project name" do
     assert {:help, usage} = CLI.parse(["--help"])
     assert usage =~ "Usage: breeze_new [PROJECT]"
-    assert usage =~ "--template blank|counter|list|kitchen_sink"
+    assert usage =~ "--template blank|counter|list|kitchen_sink|ssh"
     assert usage =~ "commander"
     assert usage =~ "catppuccin"
     assert usage =~ "solarized_light"
@@ -73,6 +73,13 @@ defmodule BreezeNew.CLITest do
     refute config.storybook
   end
 
+  test "accepts the SSH starter" do
+    assert {:ok, config, false} =
+             CLI.parse(["--no-tui", "--template", "ssh", "sample_app"])
+
+    assert config.template == :ssh
+  end
+
   test "accepts the Kitchen Sink starter" do
     assert {:ok, config, false} =
              CLI.parse(["--no-tui", "--template", "kitchen_sink", "sample_app"])
@@ -100,6 +107,22 @@ defmodule BreezeNew.CLITest do
              ])
 
     assert message =~ "Inspector must be enabled when Timeline is enabled"
+  end
+
+  test "prints SSH and local run instructions after generating an SSH starter" do
+    app_name = "ssh_after_#{System.unique_integer([:positive])}"
+    target = Path.join(System.tmp_dir!(), app_name)
+    on_exit(fn -> File.rm_rf(target) end)
+
+    output =
+      capture_io(fn ->
+        CLI.main(["--no-tui", "--template", "ssh", "--no-git", target])
+      end)
+
+    assert output =~ "mix termite.ssh.gen_host_key"
+    assert output =~ "mix run --no-halt"
+    assert output =~ "Or run the view locally without SSH:"
+    assert output =~ "mix #{app_name}.local"
   end
 
   test "prints Timeline inspector instructions when Timeline is enabled" do

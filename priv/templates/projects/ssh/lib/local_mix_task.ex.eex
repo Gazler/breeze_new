@@ -1,0 +1,20 @@
+defmodule Mix.Tasks.<%= @module_name %>.Local do
+  use Mix.Task
+
+  @shortdoc "Runs the <%= @module_name %> view without the SSH listener"
+  @requirements ["app.config"]
+
+  @impl Mix.Task
+  def run(_args) do
+    Application.put_env(:<%= @app_name %>, :start_server, false)
+    Mix.Task.run("app.start")
+    run_view()
+  end
+
+  defp run_view do
+    case <%= @module_name %>.Server.run(start_opts: [username: System.get_env("USER", "local")]) do
+      :ok -> :ok
+      {:error, reason} -> Mix.raise("view exited: #{inspect(reason)}")
+    end
+  end
+end

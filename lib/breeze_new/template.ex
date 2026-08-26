@@ -41,12 +41,27 @@ defmodule BreezeNew.Template do
       {"lib/<%= @app_name %>/kitchen_sink.ex", "projects/kitchen_sink/lib/kitchen_sink.ex.eex"},
       {"lib/<%= @app_name %>/view.ex", "projects/kitchen_sink/lib/view.ex.eex"},
       {"test/<%= @app_name %>/view_test.exs", "projects/kitchen_sink/test/view_test.exs.eex"}
+    ],
+    ssh: [
+      {"README.md", "projects/ssh/README.md.eex"},
+      {"mix.exs", "projects/ssh/mix.exs.eex"},
+      {"config/test.exs", "projects/ssh/config/test.exs.eex"},
+      {"config/runtime.exs", "projects/ssh/config/runtime.exs.eex"},
+      {"lib/<%= @app_name %>/application.ex", "projects/ssh/lib/application.ex.eex"},
+      {"lib/<%= @app_name %>/view.ex", "projects/ssh/lib/view.ex.eex"},
+      {"lib/<%= @app_name %>/server.ex", "projects/ssh/lib/server.ex.eex"},
+      {"lib/<%= @app_name %>/ssh_session.ex", "projects/ssh/lib/ssh_session.ex.eex"},
+      {"lib/mix/tasks/<%= @app_name %>.local.ex", "projects/ssh/lib/local_mix_task.ex.eex"},
+      {"priv/ssh/.gitkeep", "projects/ssh/priv/ssh/.gitkeep.eex"},
+      {"test/<%= @app_name %>/view_test.exs", "projects/ssh/test/view_test.exs.eex"}
     ]
   }
 
   @dev_templates %{
-    false => "common/config/dev.exs.eex",
-    true => "common/config/dev_timeline.exs.eex"
+    {false, false} => "common/config/dev.exs.eex",
+    {false, true} => "common/config/dev_timeline.exs.eex",
+    {true, false} => "projects/ssh/config/dev.exs.eex",
+    {true, true} => "projects/ssh/config/dev_timeline.exs.eex"
   }
 
   @fragment_templates [
@@ -103,7 +118,7 @@ defmodule BreezeNew.Template do
   defp maybe_add_storybook(files, _config), do: files
 
   defp dev_template(%Config{} = config) do
-    Map.fetch!(@dev_templates, config.timeline)
+    Map.fetch!(@dev_templates, {config.template == :ssh, config.timeline})
   end
 
   defp assigns(%Config{} = config) do
@@ -127,10 +142,12 @@ defmodule BreezeNew.Template do
       env_prefix: String.upcase(config.app_name),
       breeze_dep: dependency(:breeze, config.breeze_dep),
       timeline_dependency: timeline_dependency(config),
+      termite_ssh_dep: dependency(:termite_ssh, config.termite_ssh_dep),
       live_reload_dependency: live_reload_dependency(config.live_reload),
       extra_applications: extra_applications(config.cache_size),
       theme: theme(config.theme),
-      theme_keybinding: theme_keybinding(config.theme_cycle, 9)
+      theme_keybinding: theme_keybinding(config.theme_cycle, 9),
+      ssh_theme_keybinding: theme_keybinding(config.theme_cycle, 10)
     ]
 
     Keyword.merge(base,

@@ -1,0 +1,45 @@
+defmodule <%= @module_name %>.View do
+  use Breeze.View
+  import Breeze.Blocks<%= if @storybook, do: "\n  import #{@module_name}.Components" %>
+
+  @impl true
+  def mount(opts, term) do
+    {:ok,
+     term
+     |> assign(counter: 0, username: Keyword.get(opts, :username, "local"))
+     |> put_local_keybindings([
+       {"ArrowUp", "Increment"},
+       {"ArrowDown", "Decrement"}
+     ])}
+  end
+
+  @impl true
+  def render(assigns) do
+    ~H"""
+    <box class="grid grid-cols-1 grid-rows-2 width-screen height-screen bg">
+      <box class="padding-2">
+        <.panel class="width-full height-full">
+          <:title><%= @module_name %></:title>
+          <box class="text-muted">Connected as {@username}</box><%= if @storybook, do: "\n          <.metric label=\"Counter\" value={@counter}/>", else: "\n          <box class=\"text-primary bold\">Counter: {@counter}</box>" %>
+          <box class="text-muted padding-top-1">Use the arrow keys to change the value.</box>
+        </.panel>
+      </box>
+      <box class="height-1 width-full overflow-hidden bg-panel">
+        <.keybinding_bar
+          keybindings={@breeze.keybindings}
+          class="inline width-full height-1 overflow-hidden bg-panel padding-left-1 padding-right-1"
+        />
+      </box>
+    </box>
+    """
+  end
+
+  @impl true
+  def handle_event(_, %{"key" => "ArrowUp"}, term),
+    do: {:noreply, assign(term, counter: term.assigns.counter + 1)}
+
+  def handle_event(_, %{"key" => "ArrowDown"}, term),
+    do: {:noreply, assign(term, counter: term.assigns.counter - 1)}
+
+  def handle_event(_, _, term), do: {:noreply, term}
+end
