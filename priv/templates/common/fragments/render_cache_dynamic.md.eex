@@ -1,0 +1,4 @@
+## Render cache
+
+BackBreeze sizes its render cache dynamically from available system memory.
+The application starts OTP's `:os_mon` service to provide that information.

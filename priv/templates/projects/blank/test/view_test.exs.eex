@@ -1,0 +1,11 @@
+defmodule <%= @module_name %>.ViewTest do
+  use ExUnit.Case, async: true
+
+  test "starts the blank view" do
+    session = Breeze.Test.start!(<%= @module_name %>.View, size: {50, 10})
+    on_exit(fn -> Breeze.Test.stop(session) end)
+
+    assert is_binary(Breeze.Test.render!(session))
+    assert %{view: <%= @module_name %>.View} = Breeze.Test.metadata(session)
+  end
+end

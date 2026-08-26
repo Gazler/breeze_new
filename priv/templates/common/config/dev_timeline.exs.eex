@@ -1,0 +1,11 @@
+import Config<%= if @storybook, do: "\n\nconfig :#{@app_name}, storybook_theme: #{@theme_name}" %>
+
+config :<%= @app_name %>,
+  inspector: [
+    pages: [
+      {Breeze.Timeline.Page, every: 1, limit: 120, include: [:frame, :inspector]}
+    ]
+  ],
+  logger: <%= inspect(@logger) %>,
+  reload: <%= inspect(@live_reload) %>,
+  render_errors: [view: Breeze.ErrorView]

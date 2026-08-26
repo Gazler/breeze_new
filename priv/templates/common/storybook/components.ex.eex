@@ -1,0 +1,14 @@
+defmodule <%= @module_name %>.Components do
+  @moduledoc "Reusable function components for <%= @module_name %>."
+
+  use Breeze.Component
+
+  attr :label, :string, required: true
+  attr :value, :any, required: true
+
+  def metric(assigns) do
+    ~H"""
+    <box class="text-primary bold width-full">{@label}: {@value}</box>
+    """
+  end
+end

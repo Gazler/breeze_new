@@ -1,0 +1,16 @@
+defmodule <%= @module_name %>.View do
+  use Breeze.View
+
+  @impl true
+  def mount(_opts, term), do: {:ok, term}
+
+  @impl true
+  def render(assigns) do
+    ~H"""
+    <box class="width-screen height-screen bg"></box>
+    """
+  end
+
+  @impl true
+  def handle_event(_, _, term), do: {:noreply, term}
+end

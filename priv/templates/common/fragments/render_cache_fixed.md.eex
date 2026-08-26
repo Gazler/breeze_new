@@ -1,0 +1,4 @@
+## Render cache
+
+BackBreeze's render cache is capped at <%= @cache_size %> MB. Change
+`render_cache_max_memory_bytes` in `config/config.exs` to tune it.

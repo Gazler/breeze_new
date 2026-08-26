@@ -1,0 +1,7 @@
+import Config<%= if @storybook, do: "\n\nconfig :#{@app_name}, storybook_theme: #{@theme_name}" %>
+
+config :<%= @app_name %>,
+  inspector: <%= inspect(@inspector) %>,
+  logger: <%= inspect(@logger) %>,
+  reload: <%= inspect(@live_reload) %>,
+  render_errors: [view: Breeze.ErrorView]

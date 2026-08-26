@@ -1,0 +1,10 @@
+import Config
+
+config :<%= @app_name %>,
+  inspector: false,
+  logger: false,
+  reload: false,
+  render_errors: [
+    view: <%= @module_name %>.ErrorView,
+    keybindings: [{"q", "Quit", :stop}]
+  ]

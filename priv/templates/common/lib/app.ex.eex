@@ -1,0 +1,3 @@
+defmodule <%= @module_name %> do
+  @moduledoc "A terminal application built with Breeze."
+end

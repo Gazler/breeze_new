@@ -1,0 +1,7 @@
+import Config
+
+<%= @render_cache_config %>
+
+config :<%= @app_name %>, start_server: true
+
+import_config "#{config_env()}.exs"

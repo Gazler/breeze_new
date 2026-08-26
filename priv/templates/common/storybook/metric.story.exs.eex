@@ -1,0 +1,42 @@
+defmodule <%= @module_name %>.Stories.MetricStory do
+  use Breeze.Storybook.Story
+
+  import <%= @module_name %>.Components
+
+  @impl true
+  def story do
+    %{
+      id: "metric",
+      title: "Metric",
+      group: "Components",
+      description: "A compact label and value for application status.",
+      variants: [
+        %{
+          id: "count",
+          label: "Count",
+          source: ~S(<.metric label="Items" value={3}/>)
+        },
+        %{
+          id: "status",
+          label: "Status",
+          source: ~S(<.metric label="Status" value="Ready"/>)
+        }
+      ]
+    }
+  end
+
+  @impl true
+  def render(story) do
+    assigns =
+      case Map.get(story, :__breeze_story_variant__, "count") do
+        "status" -> %{label: "Status", value: "Ready"}
+        _variant -> %{label: "Items", value: 3}
+      end
+
+    ~H"""
+    <box class="padding-1 width-full bg-panel">
+      <.metric label={@label} value={@value}/>
+    </box>
+    """
+  end
+end

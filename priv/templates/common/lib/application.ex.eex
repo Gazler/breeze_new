@@ -1,0 +1,28 @@
+defmodule <%= @module_name %>.Application do
+  use Application
+
+  @impl true
+  def start(_type, _args) do
+    children = if start_server?(), do: [breeze_child()], else: []
+    Supervisor.start_link(children, strategy: :one_for_one, name: <%= @module_name %>.Supervisor)
+  end
+
+  defp breeze_child do
+    Supervisor.child_spec(
+      {Breeze.Server,
+       view: <%= @module_name %>.View,
+       theme: <%= @theme %>,
+       mouse: <%= inspect(@mouse) %>,
+       inspector: Application.get_env(:<%= @app_name %>, :inspector, false),
+       logger: Application.get_env(:<%= @app_name %>, :logger, false),
+       reload: Application.get_env(:<%= @app_name %>, :reload, false),
+       render_errors: Application.get_env(:<%= @app_name %>, :render_errors, []),
+       global_keybindings: [
+         <%= @theme_keybinding %>{"q", "Quit", fn _event, term -> {:stop, term} end}
+       ]},
+      restart: :temporary
+    )
+  end
+
+<%= if @theme_cycle_handler == "", do: "", else: @theme_cycle_handler <> "\n\n" %>  defp start_server?, do: Application.get_env(:<%= @app_name %>, :start_server, true)
+end
