@@ -164,6 +164,11 @@ defmodule BreezeNew.WizardTest do
     assert rendered =~ "A selectable task list with focus and events."
     assert rendered |> strip_ansi() |> panel_height() == initial_height
 
+    Breeze.Test.event(session, "template_changed", %{value: "kitchen_sink"})
+    rendered = Breeze.Test.render!(session)
+    assert rendered =~ "A gallery of every Breeze component."
+    assert rendered |> strip_ansi() |> panel_height() == initial_height
+
     Breeze.Test.event(session, "template_changed", %{value: "blank"})
     rendered = Breeze.Test.render!(session)
     assert rendered =~ "A minimal Breeze view with no example interface."
@@ -182,7 +187,7 @@ defmodule BreezeNew.WizardTest do
     session = start_wizard()
     on_exit(fn -> Breeze.Test.stop(session) end)
 
-    Enum.each(~w(blank counter list), fn template ->
+    Enum.each(~w(blank counter list kitchen_sink), fn template ->
       Breeze.Test.event(session, "template_changed", %{value: template})
       Breeze.Test.event(session, "timeline_changed", %{value: true})
 
@@ -238,6 +243,7 @@ defmodule BreezeNew.WizardTest do
     assert opened =~ "Blank"
     assert opened =~ "Counter"
     assert opened =~ "List"
+    assert opened =~ "Kitchen Sink"
     assert opened =~ "Theme"
     assert panel_bottom_row(opened) == panel_bottom_row(closed)
   end

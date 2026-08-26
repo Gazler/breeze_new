@@ -559,11 +559,16 @@ defmodule BreezeNew.Wizard do
   defp starter_description(:list),
     do: "A selectable task list with focus and events."
 
+  defp starter_description(:kitchen_sink),
+    do: "A gallery of every Breeze component."
+
   defp choices(values) do
     Enum.map(values, fn value ->
       %{value: Atom.to_string(value), label: choice_label(value)}
     end)
   end
+
+  defp choice_label(:kitchen_sink), do: "Kitchen Sink"
 
   defp choice_label(value) do
     value

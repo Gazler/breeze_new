@@ -2,7 +2,7 @@ defmodule BreezeNew.Config do
   @moduledoc "Configuration shared by the TUI and non-interactive generator."
 
   @breeze_requirement "~> 0.5.0"
-  @templates [:blank, :counter, :list]
+  @templates [:blank, :counter, :list, :kitchen_sink]
   @themes [
     :dracula,
     :commander,
@@ -37,7 +37,7 @@ defmodule BreezeNew.Config do
           app_name: String.t(),
           module_name: String.t(),
           target: String.t(),
-          template: :blank | :counter | :list,
+          template: :blank | :counter | :list | :kitchen_sink,
           theme:
             :dracula
             | :commander

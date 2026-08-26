@@ -65,13 +65,16 @@ defmodule BreezeNew.ConfigTest do
   end
 
   test "exposes the blank starter before the example starters" do
-    assert Config.templates() == [:blank, :counter, :list]
+    assert Config.templates() == [:blank, :counter, :list, :kitchen_sink]
 
     assert {:ok, %{template: :blank, storybook: false}} =
              Config.new("valid", template: "blank")
 
     assert {:ok, %{storybook: false}} =
              Config.new("valid", template: :blank, storybook: true)
+
+    assert {:ok, %{template: :kitchen_sink, storybook: true}} =
+             Config.new("valid", template: "kitchen_sink")
   end
 
   test "enables Timeline independently of the starter without changing its Breeze dependency" do

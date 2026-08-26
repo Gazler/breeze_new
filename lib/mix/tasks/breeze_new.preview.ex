@@ -9,8 +9,9 @@ defmodule Mix.Tasks.BreezeNew.Preview do
 
       mix breeze_new.preview counter
       mix breeze_new.preview list
+      mix breeze_new.preview kitchen_sink
 
-  Available starters are `blank`, `counter`, and `list`.
+  Available starters are `blank`, `counter`, `list`, and `kitchen_sink`.
   Preview modules are compiled in memory and unloaded when the view exits; no
   project files are created. Press `F3` to cycle themes, `F4` for the local
   inspector, and `q` to quit.
@@ -27,6 +28,6 @@ defmodule Mix.Tasks.BreezeNew.Preview do
   end
 
   def run(_args) do
-    Mix.raise("expected one starter: mix breeze_new.preview blank|counter|list")
+    Mix.raise("expected one starter: mix breeze_new.preview blank|counter|list|kitchen_sink")
   end
 end

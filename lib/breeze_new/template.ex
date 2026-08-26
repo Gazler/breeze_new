@@ -36,6 +36,11 @@ defmodule BreezeNew.Template do
     list: [
       {"lib/<%= @app_name %>/view.ex", "projects/list/lib/view.ex.eex"},
       {"test/<%= @app_name %>/view_test.exs", "projects/list/test/view_test.exs.eex"}
+    ],
+    kitchen_sink: [
+      {"lib/<%= @app_name %>/kitchen_sink.ex", "projects/kitchen_sink/lib/kitchen_sink.ex.eex"},
+      {"lib/<%= @app_name %>/view.ex", "projects/kitchen_sink/lib/view.ex.eex"},
+      {"test/<%= @app_name %>/view_test.exs", "projects/kitchen_sink/test/view_test.exs.eex"}
     ]
   }
 
@@ -49,7 +54,8 @@ defmodule BreezeNew.Template do
     "common/fragments/render_cache_fixed.config.eex",
     "common/fragments/render_cache_dynamic.md.eex",
     "common/fragments/render_cache_fixed.md.eex",
-    "common/fragments/theme_cycle_handler.ex.eex"
+    "common/fragments/theme_cycle_handler.ex.eex",
+    "projects/kitchen_sink/fragments/README.md.eex"
   ]
 
   @template_sources Enum.uniq(
@@ -164,6 +170,10 @@ defmodule BreezeNew.Template do
 
   defp render_cache_readme(%Config{}, assigns) do
     render_fragment("common/fragments/render_cache_fixed.md.eex", assigns)
+  end
+
+  defp starter_readme(%Config{template: :kitchen_sink}, assigns) do
+    render_fragment("projects/kitchen_sink/fragments/README.md.eex", assigns)
   end
 
   defp starter_readme(_config, _assigns), do: ""

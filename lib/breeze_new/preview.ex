@@ -3,7 +3,7 @@ defmodule BreezeNew.Preview do
 
   alias BreezeNew.{Config, Template}
 
-  @templates [:blank, :counter, :list]
+  @templates [:blank, :counter, :list, :kitchen_sink]
   @default_app_name "breeze_new_preview"
 
   defstruct [:config, :view, modules: []]
@@ -142,13 +142,14 @@ defmodule BreezeNew.Preview do
 
     [
       "#{root}/components.ex",
+      "#{root}/kitchen_sink.ex",
       "#{root}/view.ex"
     ]
     |> Enum.filter(&Map.has_key?(files, &1))
   end
 
   defp purge_candidate_modules(config) do
-    Enum.each(~w(Components View), fn suffix ->
+    Enum.each(~w(Components KitchenSink View), fn suffix ->
       module = Module.concat([config.module_name, suffix])
       :code.purge(module)
       :code.delete(module)

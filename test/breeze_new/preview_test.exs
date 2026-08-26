@@ -6,10 +6,10 @@ defmodule BreezeNew.PreviewTest do
   alias BreezeNew.Preview
 
   test "lists every preview starter" do
-    assert Preview.templates() == [:blank, :counter, :list]
+    assert Preview.templates() == [:blank, :counter, :list, :kitchen_sink]
   end
 
-  for template <- [:blank, :counter, :list] do
+  for template <- [:blank, :counter, :list, :kitchen_sink] do
     @template template
 
     test "compiles and renders the #{@template} starter without writing a project" do
@@ -37,10 +37,18 @@ defmodule BreezeNew.PreviewTest do
     end
   end
 
+  test "accepts the dashed Kitchen Sink name" do
+    assert {:ok, preview} =
+             Preview.prepare("kitchen-sink", app_name: preview_app_name(:dashed_kitchen_sink))
+
+    assert preview.config.template == :kitchen_sink
+    Preview.unload(preview)
+  end
+
   test "rejects unknown starters" do
     assert {:error, message} = Preview.prepare("missing")
     assert message =~ "unknown preview starter"
-    assert message =~ "blank, counter, list"
+    assert message =~ "blank, counter, list, kitchen_sink"
   end
 
   test "runs with local development options and unloads its modules" do

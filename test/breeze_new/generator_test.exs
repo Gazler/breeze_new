@@ -129,6 +129,12 @@ defmodule BreezeNew.GeneratorTest do
       assert IO.iodata_to_binary(Code.format_string!(server_options_file)) <> "\n" ==
                server_options_file
 
+      if @template == :kitchen_sink do
+        assert "lib/sample_app/kitchen_sink.ex" in result.files
+        assert readme =~ "## Browse the component gallery"
+        assert readme =~ "every built-in component in `Breeze.Blocks`"
+      end
+
       refute mix_file =~ ":breeze_timeline"
       refute dev_config =~ "Breeze.Timeline"
       refute readme =~ "## Timeline inspector"
@@ -240,6 +246,16 @@ defmodule BreezeNew.GeneratorTest do
 
       callback_module = Module.concat([module_name, "Application"])
 
+      if @theme_cycle_template == :kitchen_sink do
+        kitchen_sink_module = Module.concat([module_name, "KitchenSink"])
+
+        assert [{^kitchen_sink_module, _bytecode}] =
+                 Code.compile_string(
+                   files["lib/#{app_name}/kitchen_sink.ex"],
+                   "lib/#{app_name}/kitchen_sink.ex"
+                 )
+      end
+
       assert [{^view_module, _bytecode}] =
                Code.compile_string(files["lib/#{app_name}/view.ex"])
 
@@ -321,6 +337,152 @@ defmodule BreezeNew.GeneratorTest do
     assert Breeze.Test.render!(session) =~ "Build the interface"
     Breeze.Test.input(session, "ArrowDown")
     assert %{assigns: %{selected: "second"}} = Breeze.Test.metadata(session)
+  end
+
+  test "Kitchen Sink starter compiles and renders every component section" do
+    suffix = System.unique_integer([:positive])
+    app_name = "kitchen_sink_compile_#{suffix}"
+    target = tmp_target(app_name)
+    {:ok, config} = Config.new(app_name, target: target, template: :kitchen_sink)
+    files = Template.files(config)
+    module_name = Macro.camelize(app_name)
+    components_module = Module.concat([module_name, "Components"])
+    kitchen_sink_module = Module.concat([module_name, "KitchenSink"])
+    view_module = Module.concat([module_name, "View"])
+
+    assert [{^components_module, _bytecode}] =
+             Code.compile_string(
+               files["lib/#{app_name}/components.ex"],
+               "lib/#{app_name}/components.ex"
+             )
+
+    kitchen_sink_source = files["lib/#{app_name}/kitchen_sink.ex"]
+    view_source = files["lib/#{app_name}/view.ex"]
+
+    assert kitchen_sink_source =~
+             ~s(class="padding-1 padding-right-2 width-full bg-panel")
+
+    assert kitchen_sink_source =~
+             ~s(class="width-full height-6 bg-panel focus:scrollbar-primary")
+
+    assert [{^kitchen_sink_module, _bytecode}] =
+             Code.compile_string(kitchen_sink_source, "lib/#{app_name}/kitchen_sink.ex")
+
+    assert [{^view_module, _bytecode}] =
+             Code.compile_string(view_source, "lib/#{app_name}/view.ex")
+
+    for component <-
+          ~w(button checkbox dropdown input list markdown panel scroll table tabs textarea tree) do
+      assert kitchen_sink_source =~ "<.#{component}"
+    end
+
+    for component <- ~w(flash_group keybinding_bar modal) do
+      assert view_source =~ "<.#{component}"
+    end
+
+    assert Enum.sort(kitchen_sink_module.component_names()) ==
+             Enum.sort(~w(
+               button checkbox dropdown flash_group input keybinding_bar list markdown modal
+               panel scroll table tabs textarea tree
+             ))
+
+    session = Breeze.Test.start!(view_module, size: {100, 30})
+    on_exit(fn -> Breeze.Test.stop(session) end)
+
+    assert Breeze.Test.render!(session) =~ "Actions triggered: 0"
+
+    Breeze.Test.event(session, "section_changed", %{value: "collections"})
+    assert Breeze.Test.render!(session) =~ "Table"
+
+    Breeze.Test.event(session, "section_changed", %{value: "content"})
+    assert Breeze.Test.render!(session) =~ "Markdown"
+
+    short = Breeze.Test.start!(view_module, size: {204, 20})
+    on_exit(fn -> Breeze.Test.stop(short) end)
+
+    controls_before_scroll = Breeze.Test.render!(short)
+    assert controls_before_scroll =~ "Button"
+
+    Breeze.ChildServer.set_focus(short.pid, "gallery-content-controls")
+    Breeze.Test.input(short, "PageDown")
+    controls_after_scroll = Breeze.Test.render!(short)
+
+    refute controls_after_scroll == controls_before_scroll
+    refute controls_after_scroll =~ "Button"
+    assert controls_after_scroll =~ "Textarea"
+
+    Breeze.Test.event(short, "section_changed", %{value: "content"})
+    short_before_scroll = Breeze.Test.render!(short)
+    assert short_before_scroll =~ "Panel"
+
+    Breeze.ChildServer.set_focus(short.pid, "gallery-content-content")
+    Breeze.Test.input(short, "PageDown")
+    short_after_scroll = Breeze.Test.render!(short)
+
+    refute short_after_scroll == short_before_scroll
+    refute short_after_scroll =~ "Panel"
+    assert short_after_scroll =~ "Markdown"
+
+    targets = Breeze.ChildServer.layout_snapshot(session.pid).mouse_targets
+    outer_target = targets["gallery-content-content"]
+    panel_target = targets["demo-panel"]
+
+    assert outer_target.right - panel_target.right == 2
+
+    Breeze.ChildServer.set_focus(session.pid, "demo-scroll")
+    Breeze.Test.input(session, "PageDown")
+
+    assert {Breeze.Implicit.Scroll, %{offset_y: inner_offset}} =
+             Breeze.Test.metadata(session).implicit_state["demo-scroll"]
+
+    assert inner_offset > 0
+
+    Breeze.ChildServer.set_focus(session.pid, "demo-markdown")
+    Breeze.Test.input(session, "PageDown")
+
+    assert {Breeze.Implicit.Scroll, %{offset_y: markdown_offset}} =
+             Breeze.Test.metadata(session).implicit_state["demo-markdown"]
+
+    assert markdown_offset > 0
+
+    wide = Breeze.Test.start!(view_module, size: {204, 29})
+    on_exit(fn -> Breeze.Test.stop(wide) end)
+
+    Breeze.Test.event(wide, "section_changed", %{value: "content"})
+    Breeze.Test.render!(wide)
+
+    wide_outer = :sys.get_state(wide.pid).elements["gallery-content-content"]
+
+    assert wide_outer.content_height <= wide_outer.viewport_height
+
+    Breeze.Test.event(session, "section_changed", %{value: "feedback"})
+    assert Breeze.Test.render!(session) =~ "Open modal"
+
+    compact = Breeze.Test.start!(view_module, size: {40, 18})
+    on_exit(fn -> Breeze.Test.stop(compact) end)
+
+    Enum.each(~w(controls collections content feedback), fn section ->
+      Breeze.Test.event(compact, "section_changed", %{value: section})
+
+      rows =
+        compact
+        |> Breeze.Test.render!()
+        |> BackBreeze.Utils.strip_escape_chars()
+        |> String.split("\n")
+
+      assert length(rows) == 18
+      assert Enum.all?(rows, &(String.length(&1) == 40))
+    end)
+
+    Breeze.Test.event(compact, "section_changed", %{value: "content"})
+    Breeze.Test.render!(compact)
+    Breeze.ChildServer.set_focus(compact.pid, "gallery-content-content")
+    Breeze.Test.input(compact, "PageDown")
+
+    assert {Breeze.Implicit.Scroll, %{offset_y: compact_outer_offset}} =
+             Breeze.Test.metadata(compact).implicit_state["gallery-content-content"]
+
+    assert compact_outer_offset > 0
   end
 
   test "production error view renders without crash details" do
@@ -486,6 +648,7 @@ defmodule BreezeNew.GeneratorTest do
   defp expected_marker(:blank), do: ~s(class="width-screen height-screen bg")
   defp expected_marker(:counter), do: ~s(<.metric label="Counter" value={@counter}/>)
   defp expected_marker(:list), do: ~s(id="tasks")
+  defp expected_marker(:kitchen_sink), do: ~s(id="kitchen-sink")
 
   defp tmp_target(name) do
     Path.join(System.tmp_dir!(), "breeze_new_#{name}_#{System.unique_integer([:positive])}")

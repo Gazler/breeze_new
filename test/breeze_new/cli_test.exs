@@ -42,7 +42,7 @@ defmodule BreezeNew.CLITest do
   test "returns help and version without a project name" do
     assert {:help, usage} = CLI.parse(["--help"])
     assert usage =~ "Usage: breeze_new [PROJECT]"
-    assert usage =~ "--template blank|counter|list"
+    assert usage =~ "--template blank|counter|list|kitchen_sink"
     assert usage =~ "commander"
     assert usage =~ "catppuccin"
     assert usage =~ "solarized_light"
@@ -71,6 +71,14 @@ defmodule BreezeNew.CLITest do
              CLI.parse(["--no-tui", "--template", "blank", "--storybook", "sample_app"])
 
     refute config.storybook
+  end
+
+  test "accepts the Kitchen Sink starter" do
+    assert {:ok, config, false} =
+             CLI.parse(["--no-tui", "--template", "kitchen_sink", "sample_app"])
+
+    assert config.template == :kitchen_sink
+    assert config.storybook
   end
 
   test "accepts Timeline for any starter" do

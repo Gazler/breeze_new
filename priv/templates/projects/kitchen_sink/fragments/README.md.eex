@@ -1,0 +1,9 @@
+## Browse the component gallery
+
+Use Left and Right while the category tabs are focused, or select a tab
+with the mouse. Press Tab and Shift+Tab to move through each interactive
+preview. Long sections can be scrolled with the arrow, Page Up, and Page
+Down keys or the mouse wheel.
+
+The gallery covers every built-in component in `Breeze.Blocks`, including
+controlled form inputs, collections, Markdown, flash messages, and a modal.
