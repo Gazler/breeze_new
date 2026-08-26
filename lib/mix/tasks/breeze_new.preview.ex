@@ -8,8 +8,9 @@ defmodule Mix.Tasks.BreezeNew.Preview do
   Runs a starter directly from the current templates.
 
       mix breeze_new.preview counter
+      mix breeze_new.preview list
 
-  Available starters are `blank` and `counter`.
+  Available starters are `blank`, `counter`, and `list`.
   Preview modules are compiled in memory and unloaded when the view exits; no
   project files are created. Press `F3` to cycle themes, `F4` for the local
   inspector, and `q` to quit.
@@ -26,6 +27,6 @@ defmodule Mix.Tasks.BreezeNew.Preview do
   end
 
   def run(_args) do
-    Mix.raise("expected one starter: mix breeze_new.preview blank|counter")
+    Mix.raise("expected one starter: mix breeze_new.preview blank|counter|list")
   end
 end

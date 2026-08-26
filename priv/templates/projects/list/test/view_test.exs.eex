@@ -1,0 +1,12 @@
+defmodule <%= @module_name %>.ViewTest do
+  use ExUnit.Case, async: true
+
+  test "selects the next item" do
+    session = Breeze.Test.start!(<%= @module_name %>.View, size: {80, 20})
+    on_exit(fn -> Breeze.Test.stop(session) end)
+
+    assert Breeze.Test.render!(session) =~ "Build the interface"
+    Breeze.Test.input(session, "ArrowDown")
+    assert %{assigns: %{selected: "second"}} = Breeze.Test.metadata(session)
+  end
+end

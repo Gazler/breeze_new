@@ -183,7 +183,7 @@ defmodule BreezeNew.CLI do
     unless --no-tui is used.
 
     Options:
-      --template blank|counter
+      --template blank|counter|list
                                     Starter application (default: counter)
       --theme THEME                 Initial theme: dracula, commander, gruvbox,
                                     catppuccin, nord, solarized_light,

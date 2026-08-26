@@ -7,12 +7,12 @@ defmodule BreezeNew.ConfigTest do
     target = tmp_target("config")
 
     assert {:ok, config} =
-             Config.new("nested/my_app", target: target, template: "counter", theme: "commander")
+             Config.new("nested/my_app", target: target, template: "list", theme: "commander")
 
     assert config.app_name == "my_app"
     assert config.module_name == "MyApp"
     assert config.target == Path.expand(target)
-    assert config.template == :counter
+    assert config.template == :list
     assert config.theme == :commander
     assert config.cache_size == 256
     assert config.live_reload
@@ -65,7 +65,7 @@ defmodule BreezeNew.ConfigTest do
   end
 
   test "exposes the blank starter before the example starters" do
-    assert Config.templates() == [:blank, :counter]
+    assert Config.templates() == [:blank, :counter, :list]
 
     assert {:ok, %{template: :blank, storybook: false}} =
              Config.new("valid", template: "blank")
@@ -77,18 +77,18 @@ defmodule BreezeNew.ConfigTest do
   test "enables Timeline independently of the starter without changing its Breeze dependency" do
     assert {:ok,
             %{
-              template: :counter,
+              template: :list,
               timeline: true,
               inspector: true,
               breeze_dep: {:hex, "~> 0.5.0"}
-            }} = Config.new("valid", template: "counter", timeline: true)
+            }} = Config.new("valid", template: "list", timeline: true)
 
     assert {:error, message} =
-             Config.new("valid", template: "counter", timeline: true, inspector: false)
+             Config.new("valid", template: "list", timeline: true, inspector: false)
 
     assert message =~ "Inspector must be enabled when Timeline is enabled"
 
-    {:ok, config} = Config.new("valid", template: "counter")
+    {:ok, config} = Config.new("valid", template: "list")
     assert %{timeline: true, breeze_dep: {:hex, "~> 0.5.0"}} = Config.put_timeline(config, true)
 
     pinned_config = %{config | breeze_dep: {:hex, "== 0.5.0"}}

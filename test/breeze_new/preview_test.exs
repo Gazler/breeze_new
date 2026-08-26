@@ -6,10 +6,10 @@ defmodule BreezeNew.PreviewTest do
   alias BreezeNew.Preview
 
   test "lists every preview starter" do
-    assert Preview.templates() == [:blank, :counter]
+    assert Preview.templates() == [:blank, :counter, :list]
   end
 
-  for template <- [:blank, :counter] do
+  for template <- [:blank, :counter, :list] do
     @template template
 
     test "compiles and renders the #{@template} starter without writing a project" do
@@ -40,7 +40,7 @@ defmodule BreezeNew.PreviewTest do
   test "rejects unknown starters" do
     assert {:error, message} = Preview.prepare("missing")
     assert message =~ "unknown preview starter"
-    assert message =~ "blank, counter"
+    assert message =~ "blank, counter, list"
   end
 
   test "runs with local development options and unloads its modules" do

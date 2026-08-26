@@ -38,7 +38,7 @@ defmodule BreezeNew.WizardTest do
            )
 
     Breeze.Test.event(session, "name_changed", %{value: "renamed_app"})
-    Breeze.Test.event(session, "template_changed", %{value: "blank"})
+    Breeze.Test.event(session, "template_changed", %{value: "list"})
     Breeze.Test.event(session, "theme_changed", %{value: "system"})
     Breeze.Test.event(session, "theme_cycle_changed", %{value: false})
     Breeze.Test.event(session, "deps_get_changed", %{value: true})
@@ -51,7 +51,7 @@ defmodule BreezeNew.WizardTest do
     assert config.app_name == "renamed_app"
     assert config.module_name == "RenamedApp"
     assert Path.basename(config.target) == "renamed_app"
-    assert config.template == :blank
+    assert config.template == :list
     assert config.theme == :system
     refute config.theme_cycle
     assert config.cache_size == 256
@@ -159,6 +159,11 @@ defmodule BreezeNew.WizardTest do
     on_exit(fn -> Breeze.Test.stop(session) end)
     initial_height = session |> Breeze.Test.render!() |> strip_ansi() |> panel_height()
 
+    Breeze.Test.event(session, "template_changed", %{value: "list"})
+    rendered = Breeze.Test.render!(session)
+    assert rendered =~ "A selectable task list with focus and events."
+    assert rendered |> strip_ansi() |> panel_height() == initial_height
+
     Breeze.Test.event(session, "template_changed", %{value: "blank"})
     rendered = Breeze.Test.render!(session)
     assert rendered =~ "A minimal Breeze view with no example interface."
@@ -177,7 +182,7 @@ defmodule BreezeNew.WizardTest do
     session = start_wizard()
     on_exit(fn -> Breeze.Test.stop(session) end)
 
-    Enum.each(~w(blank counter), fn template ->
+    Enum.each(~w(blank counter list), fn template ->
       Breeze.Test.event(session, "template_changed", %{value: template})
       Breeze.Test.event(session, "timeline_changed", %{value: true})
 
@@ -232,6 +237,7 @@ defmodule BreezeNew.WizardTest do
 
     assert opened =~ "Blank"
     assert opened =~ "Counter"
+    assert opened =~ "List"
     assert opened =~ "Theme"
     assert panel_bottom_row(opened) == panel_bottom_row(closed)
   end
@@ -386,12 +392,12 @@ defmodule BreezeNew.WizardTest do
 
   test "returns the selected configuration" do
     session = start_wizard()
-    Breeze.Test.event(session, "template_changed", %{value: "blank"})
+    Breeze.Test.event(session, "template_changed", %{value: "list"})
     Breeze.Test.event(session, "timeline_changed", %{value: true})
     Breeze.Test.event(session, "create", %{})
 
     assert_receive {:breeze_new, {:generate, config}}
-    assert config.template == :blank
+    assert config.template == :list
     assert config.timeline
     assert config.breeze_dep == {:hex, "~> 0.5.0"}
     refute Process.alive?(session.pid)

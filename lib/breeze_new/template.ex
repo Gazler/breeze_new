@@ -32,6 +32,10 @@ defmodule BreezeNew.Template do
     counter: [
       {"lib/<%= @app_name %>/view.ex", "projects/counter/lib/view.ex.eex"},
       {"test/<%= @app_name %>/view_test.exs", "projects/counter/test/view_test.exs.eex"}
+    ],
+    list: [
+      {"lib/<%= @app_name %>/view.ex", "projects/list/lib/view.ex.eex"},
+      {"test/<%= @app_name %>/view_test.exs", "projects/list/test/view_test.exs.eex"}
     ]
   }
 

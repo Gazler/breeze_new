@@ -3,7 +3,7 @@ defmodule BreezeNew.Preview do
 
   alias BreezeNew.{Config, Template}
 
-  @templates [:blank, :counter]
+  @templates [:blank, :counter, :list]
   @default_app_name "breeze_new_preview"
 
   defstruct [:config, :view, modules: []]

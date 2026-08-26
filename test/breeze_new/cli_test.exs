@@ -10,7 +10,7 @@ defmodule BreezeNew.CLITest do
              CLI.parse([
                "--no-tui",
                "--template",
-               "counter",
+               "list",
                "--theme",
                "system",
                "--no-theme-cycle",
@@ -26,7 +26,7 @@ defmodule BreezeNew.CLITest do
                "sample_app"
              ])
 
-    assert config.template == :counter
+    assert config.template == :list
     assert config.theme == :system
     refute config.theme_cycle
     assert config.cache_size == 512
@@ -42,7 +42,7 @@ defmodule BreezeNew.CLITest do
   test "returns help and version without a project name" do
     assert {:help, usage} = CLI.parse(["--help"])
     assert usage =~ "Usage: breeze_new [PROJECT]"
-    assert usage =~ "--template blank|counter"
+    assert usage =~ "--template blank|counter|list"
     assert usage =~ "commander"
     assert usage =~ "catppuccin"
     assert usage =~ "solarized_light"
@@ -75,9 +75,9 @@ defmodule BreezeNew.CLITest do
 
   test "accepts Timeline for any starter" do
     assert {:ok, config, false} =
-             CLI.parse(["--no-tui", "--template", "counter", "--timeline", "sample_app"])
+             CLI.parse(["--no-tui", "--template", "list", "--timeline", "sample_app"])
 
-    assert config.template == :counter
+    assert config.template == :list
     assert config.timeline
     assert config.breeze_dep == {:hex, "~> 0.5.0"}
 
@@ -85,7 +85,7 @@ defmodule BreezeNew.CLITest do
              CLI.parse([
                "--no-tui",
                "--template",
-               "counter",
+               "list",
                "--timeline",
                "--no-inspector",
                "sample_app"
@@ -104,7 +104,7 @@ defmodule BreezeNew.CLITest do
         CLI.main([
           "--no-tui",
           "--template",
-          "counter",
+          "list",
           "--timeline",
           "--no-git",
           target

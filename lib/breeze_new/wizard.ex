@@ -556,6 +556,9 @@ defmodule BreezeNew.Wizard do
   defp starter_description(:blank),
     do: "A minimal Breeze view with no example interface."
 
+  defp starter_description(:list),
+    do: "A selectable task list with focus and events."
+
   defp choices(values) do
     Enum.map(values, fn value ->
       %{value: Atom.to_string(value), label: choice_label(value)}

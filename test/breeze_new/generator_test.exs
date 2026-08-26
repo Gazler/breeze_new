@@ -296,6 +296,33 @@ defmodule BreezeNew.GeneratorTest do
     assert [{^module, _bytecode}] = Code.compile_string(view)
   end
 
+  test "list starter compiles with its generated component" do
+    suffix = System.unique_integer([:positive])
+    app_name = "list_compile_#{suffix}"
+    target = tmp_target(app_name)
+    {:ok, config} = Config.new(app_name, target: target, template: :list)
+    files = Template.files(config)
+    module_name = Macro.camelize(app_name)
+    components_module = Module.concat([module_name, "Components"])
+    view_module = Module.concat([module_name, "View"])
+
+    assert [{^components_module, _bytecode}] =
+             Code.compile_string(
+               files["lib/#{app_name}/components.ex"],
+               "lib/#{app_name}/components.ex"
+             )
+
+    assert [{^view_module, _bytecode}] =
+             Code.compile_string(files["lib/#{app_name}/view.ex"], "lib/#{app_name}/view.ex")
+
+    session = Breeze.Test.start!(view_module, size: {80, 20})
+    on_exit(fn -> Breeze.Test.stop(session) end)
+
+    assert Breeze.Test.render!(session) =~ "Build the interface"
+    Breeze.Test.input(session, "ArrowDown")
+    assert %{assigns: %{selected: "second"}} = Breeze.Test.metadata(session)
+  end
+
   test "production error view renders without crash details" do
     suffix = System.unique_integer([:positive])
     app_name = "error_view_compile_#{suffix}"
@@ -458,6 +485,7 @@ defmodule BreezeNew.GeneratorTest do
 
   defp expected_marker(:blank), do: ~s(class="width-screen height-screen bg")
   defp expected_marker(:counter), do: ~s(<.metric label="Counter" value={@counter}/>)
+  defp expected_marker(:list), do: ~s(id="tasks")
 
   defp tmp_target(name) do
     Path.join(System.tmp_dir!(), "breeze_new_#{name}_#{System.unique_integer([:positive])}")
