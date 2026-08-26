@@ -1,7 +1,7 @@
 defmodule BreezeNew.Config do
   @moduledoc "Configuration shared by the TUI and non-interactive generator."
 
-  @breeze_requirement "~> 0.5.0"
+  @breeze_requirement "~> 0.5.1"
   @templates [:blank, :counter, :list, :kitchen_sink, :ssh]
   @themes [
     :dracula,

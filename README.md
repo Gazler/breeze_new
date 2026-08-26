@@ -3,45 +3,23 @@
 `breeze_new` creates a ready-to-run [Breeze](https://github.com/Gazler/breeze)
 terminal application through an interactive TUI wizard.
 
-The wizard lets you choose a minimal Blank project or an example Counter, List,
-Kitchen Sink, or SSH starter, along with the theme, F3 theme cycling, mouse
-support, development inspector, render-cache sizing, optional Timeline and
-live-reload support, and optional Git initialization.
-Generation can also weave a reusable function component and Storybook story
-into the Counter, List, Kitchen Sink, and SSH starters. It is staged in a
-temporary directory so an existing target is never overwritten.
-Generated projects derive their Elixir requirement from the runtime executing
-`breeze_new`, including prerelease versions.
+The wizard lets you choose a minimal project scaffold and theme.
 
-## Build
+## Install
 
 ```bash
-mix deps.get
-mix escript.build
+mix escript.install hex breeze_new
 ```
-
-Development and release builds use Breeze `~> 0.5.0` and BackBreeze
-`~> 0.4.4` from Hex. Generated projects also declare all dependencies as Hex
-requirements.
 
 ## Create an application
 
 Start the wizard with an empty project name, or pre-fill it with a name or path:
 
 ```bash
-mix run
-mix run -- my_app
-
-# Or use the built escript:
-./breeze_new
-./breeze_new my_app
-./breeze_new apps/my_app
+breeze_new
 ```
 
-Use `Tab` and `Shift+Tab` to move between controls, `Enter` to open dropdowns or
-activate buttons, and `Space` or a left click to toggle checkboxes.
-
-For scripts and CI, bypass the wizard:
+To bypass the TUI, flags are available:
 
 ```bash
 ./breeze_new my_app \
@@ -56,7 +34,7 @@ For scripts and CI, bypass the wizard:
   --no-git
 ```
 
-Run `./breeze_new --help` for every option.
+Run `breeze_new --help` for every option.
 
 ## Run the generated project
 
@@ -68,13 +46,7 @@ mix run --no-halt
 
 Generated projects include a Breeze view test, environment-specific
 configuration, a production-safe error view, optional development live
-reloading, an optional component Storybook for example starters, theme cycling
-on `F3`, and quit handling on `q`.
-
-The render cache defaults to a fixed 256 MB limit, avoiding a dependency on
-OTP's `:memsup`. Choose `dynamic` in the wizard or pass `--cache-size dynamic`
-to start `:os_mon` and let BackBreeze size the cache from available system
-memory. A different positive MB value sets an explicit limit instead.
+reloading, an optional component Storybook for example starters.
 
 When Storybook is selected for the Counter, List, Kitchen Sink, or SSH starter,
 launch it with:
