@@ -1,20 +1,28 @@
 defmodule BreezeNew.MixProject do
   use Mix.Project
 
-  @breeze_requirement "~> 0.5.1"
+  @breeze_version "0.5.1"
+  @breeze_requirement "~> #{@breeze_version}"
   @back_breeze_requirement "~> 0.4.4"
 
   def project do
     [
       app: :breeze_new,
-      version: "0.1.0",
+      version: @breeze_requirement,
       description: "A TUI project generator for Breeze applications",
       elixir: "~> 1.16",
       start_permanent: Mix.env() == :prod,
       escript: [main_module: BreezeNew.CLI],
       aliases: aliases(),
       package: package(),
-      deps: deps()
+      deps: deps(),
+      docs: [
+        source_ref: "v#{@breeze_version}",
+        extras: [
+          "CHANGELOG.md",
+          "README.md"
+        ]
+      ]
     ]
   end
 
@@ -30,7 +38,8 @@ defmodule BreezeNew.MixProject do
   defp deps do
     [
       {:breeze, @breeze_requirement},
-      {:back_breeze, @back_breeze_requirement}
+      {:back_breeze, @back_breeze_requirement},
+      {:ex_doc, "~> 0.34", only: :dev, runtime: false}
     ]
   end
 
