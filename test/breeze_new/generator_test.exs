@@ -22,6 +22,7 @@ defmodule BreezeNew.GeneratorTest do
       %Version{major: elixir_major, minor: elixir_minor} = Version.parse!(System.version())
       root_config = File.read!(Path.join(target, "config/config.exs"))
       view_file = File.read!(Path.join(target, "lib/sample_app/view.ex"))
+      view_test = File.read!(Path.join(target, "test/sample_app/view_test.exs"))
       application_file = File.read!(Path.join(target, "lib/sample_app/application.ex"))
       error_view = File.read!(Path.join(target, "lib/sample_app/error_view.ex"))
       dev_config = File.read!(Path.join(target, "config/dev.exs"))
@@ -47,7 +48,8 @@ defmodule BreezeNew.GeneratorTest do
       assert [_, elixir_requirement] = Regex.run(~r/elixir: "([^"]+)"/, mix_file)
       assert elixir_requirement =~ "#{elixir_major}.#{elixir_minor}"
       assert Version.match?(System.version(), elixir_requirement)
-      assert mix_file =~ ~s({:breeze, "~> 0.5.0"})
+      assert mix_file =~ ~s({:breeze, "~> 0.5.1"})
+      assert mix_file =~ ~s(aliases: [run: "run --no-halt"])
       refute mix_file =~ "path:"
       assert mix_file =~ "extra_applications: [:logger]"
       refute mix_file =~ ":os_mon"
@@ -56,8 +58,13 @@ defmodule BreezeNew.GeneratorTest do
       refute root_config =~ "config :os_mon"
       assert readme =~ "## Render cache"
       assert readme =~ "render cache is capped at 256 MB"
+      assert readme =~ "mix run"
+      refute readme =~ "mix run --no-halt"
       assert view_file =~ "defmodule SampleApp.View"
       assert view_file =~ expected_marker(@template)
+      assert view_test =~ "Breeze.Test.render_text!("
+      refute view_test =~ "Breeze.Test.render!("
+      refute view_test =~ "Breeze.ChildServer"
 
       if @template == :blank do
         refute view_file =~ ".keybinding_bar"
@@ -96,10 +103,27 @@ defmodule BreezeNew.GeneratorTest do
       assert formatter =~ "locals_without_parens: locals_without_parens"
 
       assert server_options_file =~ ~s({"F3", "Cycle theme")
-      assert server_options_file =~ "&__MODULE__.cycle_theme/2"
-      assert server_options_file =~ "def cycle_theme(event, term)"
-      assert server_options_file =~ "_name -> :gruvbox"
+      assert server_options_file =~ "&Breeze.View.cycle_theme/2"
+      refute server_options_file =~ "def cycle_theme(event, term)"
       assert server_options_file =~ ~s({"q", "Quit")
+      assert server_options_file =~ "fn _event, term -> {:stop, term} end"
+
+      if @template == :ssh do
+        refute server_options_file =~ "System.stop"
+        refute application_file =~ "auto_shutdown"
+        refute application_file =~ "significant: true"
+      else
+        assert server_options_file =~ "System.stop(0)"
+        assert application_file =~ "breeze_opts = ["
+        assert application_file =~ "{Breeze.Server, breeze_opts}"
+        assert application_file =~ "auto_shutdown: :any_significant"
+        assert application_file =~ "significant: true"
+        assert application_file =~ "Shut down the application when the Breeze view exits."
+
+        assert application_file =~
+                 "https://www.erlang.org/doc/system/sup_princ.html#all_significant"
+      end
+
       assert server_options_file =~ "reload: Application.get_env(:sample_app, :reload, false)"
       assert server_options_file =~ "render_errors: Application.get_env"
       refute server_options_file =~ "F10"
@@ -185,6 +209,8 @@ defmodule BreezeNew.GeneratorTest do
         assert "lib/sample_app/kitchen_sink.ex" in result.files
         assert readme =~ "## Browse the component gallery"
         assert readme =~ "every built-in component in `Breeze.Blocks`"
+        assert view_test =~ "Breeze.Test.focus("
+        assert view_test =~ "Breeze.Test.click("
       end
 
       refute mix_file =~ ":breeze_timeline"
@@ -236,8 +262,89 @@ defmodule BreezeNew.GeneratorTest do
 
     mix_file = File.read!(Path.join(target, "mix.exs"))
 
-    assert mix_file =~ ~s({:breeze, "~> 0.5.0"})
+    assert mix_file =~ ~s({:breeze, "~> 0.5.1"})
     refute mix_file =~ "path:"
+  end
+
+  test "standalone Quit waits for Breeze cleanup before stopping the runtime" do
+    target = tmp_target("quit_lifecycle")
+
+    {:ok, config} =
+      Config.new("quit_lifecycle",
+        target: target,
+        template: :blank,
+        theme: :system,
+        theme_cycle: false,
+        storybook: false,
+        init_git: false
+      )
+
+    application_source =
+      config
+      |> Template.files()
+      |> Map.fetch!("lib/quit_lifecycle/application.ex")
+      |> String.replace("Breeze.Server", "QuitLifecycle.Server")
+      |> Base.encode64()
+
+    script = """
+    defmodule QuitLifecycle.Server do
+      use GenServer
+
+      def start_link(options), do: GenServer.start_link(__MODULE__, options, name: __MODULE__)
+
+      @impl true
+      def init(options) do
+        Process.flag(:trap_exit, true)
+        {:ok, options}
+      end
+
+      @impl true
+      def handle_call(:quit, _from, options) do
+        {"q", "Quit", handler} = List.keyfind(options[:global_keybindings], "q", 0)
+        result = handler.(nil, :term)
+        {:stop, :normal, result, options}
+      end
+
+      @impl true
+      def terminate(reason, _state) do
+        IO.puts("server terminated: \#{inspect(reason)}")
+      end
+    end
+
+    #{inspect(application_source)}
+    |> Base.decode64!()
+    |> Code.compile_string()
+
+    :ok =
+      :application.load(
+        {:application, :quit_lifecycle,
+         [
+           {:description, ~c"quit lifecycle test"},
+           {:vsn, ~c"0.1.0"},
+           {:modules, [QuitLifecycle.Application, QuitLifecycle.Server]},
+           {:registered, []},
+           {:applications, [:kernel, :stdlib, :elixir]},
+           {:mod, {QuitLifecycle.Application, []}}
+         ]}
+      )
+
+    :ok = Application.start(:quit_lifecycle)
+    {:stop, :term} = GenServer.call(QuitLifecycle.Server, :quit)
+    Process.sleep(2_000)
+    System.halt(99)
+    """
+
+    timeout = System.find_executable("timeout")
+    elixir = System.find_executable("elixir")
+
+    assert is_binary(timeout)
+    assert is_binary(elixir)
+
+    {output, status} =
+      System.cmd(timeout, ["5", elixir, "--no-halt", "-e", script], stderr_to_stdout: true)
+
+    assert status == 0, output
+    assert output =~ "server terminated: :normal"
   end
 
   test "can set a custom fixed render cache size" do
@@ -298,7 +405,7 @@ defmodule BreezeNew.GeneratorTest do
   for template <- Config.templates() do
     @theme_cycle_template template
 
-    test "F3 advances from the selected theme in the #{@theme_cycle_template} starter" do
+    test "F3 uses Breeze's theme cycle in the #{@theme_cycle_template} starter" do
       suffix = System.unique_integer([:positive])
       app_name = "theme_cycle_#{@theme_cycle_template}_#{suffix}"
       target = tmp_target(app_name)
@@ -343,13 +450,11 @@ defmodule BreezeNew.GeneratorTest do
       assert [{^callback_module, _bytecode}] =
                Code.compile_string(files[callback_path])
 
-      handler = Function.capture(callback_module, :cycle_theme, 2)
-
       session =
         Breeze.Test.start!(view_module,
           size: {80, 20},
           theme: Breeze.Theme.builtin(:gruvbox),
-          global_keybindings: [{"F3", "Cycle theme", handler}]
+          global_keybindings: [{"F3", "Cycle theme", &Breeze.View.cycle_theme/2}]
         )
 
       on_exit(fn -> Breeze.Test.stop(session) end)
@@ -359,12 +464,11 @@ defmodule BreezeNew.GeneratorTest do
 
       Breeze.Test.input(session, "F3")
 
-      assert get_in(Breeze.Test.metadata(session).assigns, [:breeze, :theme, :name]) == :nord
+      assert get_in(Breeze.Test.metadata(session).assigns, [:breeze, :theme, :name]) == :system16
 
       Breeze.Test.input(session, "F3")
 
-      assert get_in(Breeze.Test.metadata(session).assigns, [:breeze, :theme, :name]) ==
-               :solarized_light
+      assert get_in(Breeze.Test.metadata(session).assigns, [:breeze, :theme, :name]) == :system
     end
   end
 
@@ -444,6 +548,19 @@ defmodule BreezeNew.GeneratorTest do
     assert kitchen_sink_source =~
              ~s(class="width-full height-6 bg-panel focus:scrollbar-primary")
 
+    for section <- ~w(controls collections content feedback) do
+      assert kitchen_sink_source =~ ~s(<:tab value="#{section}")
+      assert kitchen_sink_source =~ ~s(<.#{section}_tab)
+      assert kitchen_sink_source =~ "defp #{section}_tab(assigns)"
+      assert kitchen_sink_source =~ ~s(id="gallery-tabs-panel-#{section}")
+    end
+
+    refute kitchen_sink_source =~ ~s(panel={false})
+    refute kitchen_sink_source =~ ~s(:if={@section ==)
+
+    refute kitchen_sink_source =~
+             ~r/^\s+@(sections|component_names|nodes|cities|markdown|log_lines)\b/m
+
     assert [{^kitchen_sink_module, _bytecode}] =
              Code.compile_string(kitchen_sink_source, "lib/#{app_name}/kitchen_sink.ex")
 
@@ -482,7 +599,7 @@ defmodule BreezeNew.GeneratorTest do
     controls_before_scroll = Breeze.Test.render!(short)
     assert controls_before_scroll =~ "Button"
 
-    Breeze.ChildServer.set_focus(short.pid, "gallery-content-controls")
+    Breeze.ChildServer.set_focus(short.pid, "gallery-tabs-panel-controls")
     Breeze.Test.input(short, "PageDown")
     controls_after_scroll = Breeze.Test.render!(short)
 
@@ -494,7 +611,7 @@ defmodule BreezeNew.GeneratorTest do
     short_before_scroll = Breeze.Test.render!(short)
     assert short_before_scroll =~ "Panel"
 
-    Breeze.ChildServer.set_focus(short.pid, "gallery-content-content")
+    Breeze.ChildServer.set_focus(short.pid, "gallery-tabs-panel-content")
     Breeze.Test.input(short, "PageDown")
     short_after_scroll = Breeze.Test.render!(short)
 
@@ -503,7 +620,7 @@ defmodule BreezeNew.GeneratorTest do
     assert short_after_scroll =~ "Markdown"
 
     targets = Breeze.ChildServer.layout_snapshot(session.pid).mouse_targets
-    outer_target = targets["gallery-content-content"]
+    outer_target = targets["gallery-tabs-panel-content"]
     panel_target = targets["demo-panel"]
 
     assert outer_target.right - panel_target.right == 2
@@ -530,7 +647,7 @@ defmodule BreezeNew.GeneratorTest do
     Breeze.Test.event(wide, "section_changed", %{value: "content"})
     Breeze.Test.render!(wide)
 
-    wide_outer = :sys.get_state(wide.pid).elements["gallery-content-content"]
+    wide_outer = :sys.get_state(wide.pid).elements["gallery-tabs-panel-content"]
 
     assert wide_outer.content_height <= wide_outer.viewport_height
 
@@ -555,11 +672,11 @@ defmodule BreezeNew.GeneratorTest do
 
     Breeze.Test.event(compact, "section_changed", %{value: "content"})
     Breeze.Test.render!(compact)
-    Breeze.ChildServer.set_focus(compact.pid, "gallery-content-content")
+    Breeze.ChildServer.set_focus(compact.pid, "gallery-tabs-panel-content")
     Breeze.Test.input(compact, "PageDown")
 
     assert {Breeze.Implicit.Scroll, %{offset_y: compact_outer_offset}} =
-             Breeze.Test.metadata(compact).implicit_state["gallery-content-content"]
+             Breeze.Test.metadata(compact).implicit_state["gallery-tabs-panel-content"]
 
     assert compact_outer_offset > 0
   end

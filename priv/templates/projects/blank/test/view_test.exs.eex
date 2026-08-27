@@ -5,7 +5,7 @@ defmodule <%= @module_name %>.ViewTest do
     session = Breeze.Test.start!(<%= @module_name %>.View, size: {50, 10})
     on_exit(fn -> Breeze.Test.stop(session) end)
 
-    assert is_binary(Breeze.Test.render!(session))
+    assert is_binary(Breeze.Test.render_text!(session))
     assert %{view: <%= @module_name %>.View} = Breeze.Test.metadata(session)
   end
 end

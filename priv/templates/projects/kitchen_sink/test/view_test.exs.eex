@@ -28,7 +28,7 @@ defmodule <%= @module_name %>.ViewTest do
     session = Breeze.Test.start!(<%= @module_name %>.View, size: {100, 30})
     on_exit(fn -> Breeze.Test.stop(session) end)
 
-    controls = Breeze.Test.render!(session)
+    controls = Breeze.Test.render_text!(session)
     assert controls =~ "Button"
     assert controls =~ "Checkbox"
     assert controls =~ "Dropdown"
@@ -39,13 +39,13 @@ defmodule <%= @module_name %>.ViewTest do
     assert Breeze.Test.metadata(session).assigns.checked == false
 
     Breeze.Test.event(session, "section_changed", %{value: "collections"})
-    collections = Breeze.Test.render!(session)
+    collections = Breeze.Test.render_text!(session)
     assert collections =~ "List"
     assert collections =~ "Tree"
     assert collections =~ "Table"
 
     Breeze.Test.event(session, "section_changed", %{value: "content"})
-    content = Breeze.Test.render!(session)
+    content = Breeze.Test.render_text!(session)
     assert content =~ "Panel"
     assert content =~ "Scroll"
     assert content =~ "Markdown"
@@ -53,30 +53,30 @@ defmodule <%= @module_name %>.ViewTest do
     short = Breeze.Test.start!(<%= @module_name %>.View, size: {100, 20})
     on_exit(fn -> Breeze.Test.stop(short) end)
 
-    controls_before_scroll = Breeze.Test.render!(short)
+    controls_before_scroll = Breeze.Test.render_text!(short)
     assert controls_before_scroll =~ "Button"
 
-    Breeze.ChildServer.set_focus(short.pid, "gallery-content-controls")
+    Breeze.Test.focus(short, "gallery-tabs-panel-controls")
     Breeze.Test.input(short, "PageDown")
-    controls_after_scroll = Breeze.Test.render!(short)
+    controls_after_scroll = Breeze.Test.render_text!(short)
 
     refute controls_after_scroll == controls_before_scroll
     refute controls_after_scroll =~ "Button"
     assert controls_after_scroll =~ "Textarea"
 
     Breeze.Test.event(short, "section_changed", %{value: "content"})
-    short_before_scroll = Breeze.Test.render!(short)
+    short_before_scroll = Breeze.Test.render_text!(short)
     assert short_before_scroll =~ "Panel"
 
-    Breeze.ChildServer.set_focus(short.pid, "gallery-content-content")
+    Breeze.Test.focus(short, "gallery-tabs-panel-content")
     Breeze.Test.input(short, "PageDown")
-    short_after_scroll = Breeze.Test.render!(short)
+    short_after_scroll = Breeze.Test.render_text!(short)
 
     refute short_after_scroll == short_before_scroll
     refute short_after_scroll =~ "Panel"
     assert short_after_scroll =~ "Markdown"
 
-    Breeze.ChildServer.set_focus(session.pid, "demo-scroll")
+    Breeze.Test.focus(session, "demo-scroll")
     Breeze.Test.input(session, "PageDown")
 
     assert {Breeze.Implicit.Scroll, %{offset_y: inner_offset}} =
@@ -84,7 +84,7 @@ defmodule <%= @module_name %>.ViewTest do
 
     assert inner_offset > 0
 
-    Breeze.ChildServer.set_focus(session.pid, "demo-markdown")
+    Breeze.Test.focus(session, "demo-markdown")
     Breeze.Test.input(session, "PageDown")
 
     assert {Breeze.Implicit.Scroll, %{offset_y: markdown_offset}} =
@@ -93,14 +93,12 @@ defmodule <%= @module_name %>.ViewTest do
     assert markdown_offset > 0
 
     Breeze.Test.event(session, "section_changed", %{value: "feedback"})
-    assert Breeze.Test.render!(session) =~ "Flash group"
+    assert Breeze.Test.render_text!(session) =~ "Flash group"
 
-    Breeze.ChildServer.set_focus(session.pid, "show-flash")
-    Breeze.Test.input(session, "Enter")
-    assert Breeze.Test.render!(session) =~ "Everything is working"
+    Breeze.Test.click(session, "show-flash")
+    assert Breeze.Test.render_text!(session) =~ "Everything is working"
 
-    Breeze.ChildServer.set_focus(session.pid, "open-modal")
-    Breeze.Test.input(session, "Enter")
-    assert Breeze.Test.render!(session) =~ "This is a real Breeze modal."
+    Breeze.Test.click(session, "open-modal")
+    assert Breeze.Test.render_text!(session) =~ "This is a real Breeze modal."
   end
 end

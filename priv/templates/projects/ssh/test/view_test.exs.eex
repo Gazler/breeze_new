@@ -10,9 +10,9 @@ defmodule <%= @module_name %>.ViewTest do
 
     on_exit(fn -> Breeze.Test.stop(session) end)
 
-    assert Breeze.Test.render!(session) =~ "Connected as alice"
-    assert Breeze.Test.render!(session) =~ "Counter: 0"
+    assert Breeze.Test.render_text!(session) =~ "Connected as alice"
+    assert Breeze.Test.render_text!(session) =~ "Counter: 0"
     Breeze.Test.input(session, "ArrowUp")
-    assert Breeze.Test.render!(session) =~ "Counter: 1"
+    assert Breeze.Test.render_text!(session) =~ "Counter: 1"
   end
 end

@@ -18,7 +18,7 @@ defmodule BreezeNew.ConfigTest do
     assert config.live_reload
     assert config.storybook
     refute config.timeline
-    assert config.breeze_dep == {:hex, "~> 0.5.0"}
+    assert config.breeze_dep == {:hex, "~> 0.5.1"}
     assert config.breeze_timeline_dep == {:hex, "~> 0.1.0"}
   end
 
@@ -86,7 +86,7 @@ defmodule BreezeNew.ConfigTest do
               template: :list,
               timeline: true,
               inspector: true,
-              breeze_dep: {:hex, "~> 0.5.0"}
+              breeze_dep: {:hex, "~> 0.5.1"}
             }} = Config.new("valid", template: "list", timeline: true)
 
     assert {:error, message} =
@@ -95,7 +95,7 @@ defmodule BreezeNew.ConfigTest do
     assert message =~ "Inspector must be enabled when Timeline is enabled"
 
     {:ok, config} = Config.new("valid", template: "ssh")
-    assert %{timeline: true, breeze_dep: {:hex, "~> 0.5.0"}} = Config.put_timeline(config, true)
+    assert %{timeline: true, breeze_dep: {:hex, "~> 0.5.1"}} = Config.put_timeline(config, true)
 
     pinned_config = %{config | breeze_dep: {:hex, "== 0.5.0"}}
 

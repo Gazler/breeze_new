@@ -4,73 +4,27 @@ defmodule <%= @module_name %>.KitchenSink do
   use Breeze.Component
   import Breeze.Blocks
 
-  @sections [
-    %{id: "controls", label: "Controls"},
-    %{id: "collections", label: "Collections"},
-    %{id: "content", label: "Content"},
-    %{id: "feedback", label: "Feedback"}
-  ]
+  def section?(section), do: section in ~w(controls collections content feedback)
 
-  @component_names ~w(
-    button
-    checkbox
-    dropdown
-    flash_group
-    input
-    keybinding_bar
-    list
-    markdown
-    modal
-    panel
-    scroll
-    table
-    tabs
-    textarea
-    tree
-  )
-
-  @nodes [
-    %{
-      id: "lib",
-      label: "lib",
-      children: [
-        %{id: "view", label: "view.ex"},
-        %{id: "kitchen-sink", label: "kitchen_sink.ex"}
-      ]
-    },
-    %{
-      id: "test",
-      label: "test",
-      children: [%{id: "view-test", label: "view_test.exs"}]
-    },
-    %{id: "mix", label: "mix.exs"}
-  ]
-
-  @cities [
-    %{id: "london", city: "London", status: "Ready"},
-    %{id: "tokyo", city: "Tokyo", status: "Busy"},
-    %{id: "oslo", city: "Oslo", status: "Ready"},
-    %{id: "lisbon", city: "Lisbon", status: "Idle"}
-  ]
-
-  @markdown """
-  # Markdown
-
-  Breeze supports **emphasis**, `inline code`, links, lists, and fenced code.
-
-  - Keyboard scrolling
-  - Terminal-aware wrapping
-  - Theme-aware syntax
-
-  ```elixir
-  {:ok, term}
-  ```
-  """
-
-  @log_lines Enum.map(1..12, &"Rendered log line #{&1}")
-
-  def sections, do: @sections
-  def component_names, do: @component_names
+  def component_names do
+    ~w(
+      button
+      checkbox
+      dropdown
+      flash_group
+      input
+      keybinding_bar
+      list
+      markdown
+      modal
+      panel
+      scroll
+      table
+      tabs
+      textarea
+      tree
+    )
+  end
 
   attr :section, :string, required: true
   attr :checked, :boolean, required: true
@@ -85,189 +39,278 @@ defmodule <%= @module_name %>.KitchenSink do
   attr :terminal_width, :integer, required: true
 
   def gallery(assigns) do
-    assigns =
-      assign(assigns,
-        sections: @sections,
-        nodes: @nodes,
-        cities: @cities,
-        markdown: @markdown,
-        log_lines: @log_lines,
-        markdown_width: max(min(assigns.terminal_width - 8, 64), 20)
-      )
-
     ~H"""
     <box class="width-full height-full bg-panel">
       <.tabs
         id="gallery-tabs"
         selected={@section}
         variant="underline"
-        panel={false}
         br-change="section_changed"
-        class="width-full height-2 bg-panel"
+        class="width-full height-full bg-panel"
       >
-        <:tab :for={section <- @sections} value={section.id} label={section.label}></:tab>
+        <:tab value="controls" label="Controls">
+          <.controls_tab
+            checked={@checked}
+            method={@method}
+            name={@name}
+            notes={@notes}
+            action_count={@action_count}
+          />
+        </:tab>
+        <:tab value="collections" label="Collections">
+          <.collections_tab
+            selected_item={@selected_item}
+            selected_node={@selected_node}
+            expanded_nodes={@expanded_nodes}
+            selected_city={@selected_city}
+          />
+        </:tab>
+        <:tab value="content" label="Content">
+          <.content_tab terminal_width={@terminal_width} />
+        </:tab>
+        <:tab value="feedback" label="Feedback">
+          <.feedback_tab />
+        </:tab>
       </.tabs>
-
-      <.scroll
-        id={"gallery-content-#{@section}"}
-        class="width-full height-full bg-panel focus:scrollbar-primary"
-      >
-        <box
-          :if={@section == "controls"}
-          class="padding-1 padding-right-2 width-full bg-panel"
-        >
-          <box class="text-primary bold">Button</box>
-          <box class="inline width-full height-1">
-            <.button id="demo-primary" class="width-16">Run action</.button>
-            <box class="width-1"></box>
-            <.button id="demo-reset" class="width-12 bg-error">Reset</.button>
-          </box>
-          <box class="text-muted">Actions triggered: {@action_count}</box>
-
-          <box class="height-1"></box>
-          <box class="text-primary bold">Checkbox</box>
-          <.checkbox id="demo-checkbox" checked={@checked} br-change="checked_changed">
-            Enable previews
-          </.checkbox>
-          <.checkbox id="demo-checkbox-disabled" checked disabled>
-            Disabled state
-          </.checkbox>
-
-          <box class="height-1"></box>
-          <box class="text-primary bold">Dropdown</box>
-          <.dropdown
-            id="demo-dropdown"
-            selected={@method}
-            br-change="method_changed"
-            class="width-24"
-          >
-            <:item value="GET">GET</:item>
-            <:item value="POST">POST</:item>
-            <:item value="PATCH">PATCH</:item>
-          </.dropdown>
-
-          <box class="height-1"></box>
-          <box class="text-primary bold">Input</box>
-          <.input
-            id="demo-input"
-            input-value={@name}
-            input-placeholder="Your name"
-            br-change="name_changed"
-            class="width-full"
-          />
-
-          <box class="height-1"></box>
-          <box class="text-primary bold">Textarea</box>
-          <.textarea
-            id="demo-textarea"
-            textarea-value={@notes}
-            textarea-placeholder="Add some notes"
-            br-change="notes_changed"
-            class="width-full height-4"
-          />
-        </box>
-
-        <box
-          :if={@section == "collections"}
-          class="padding-1 padding-right-2 width-full bg-panel"
-        >
-          <box class="text-primary bold">List</box>
-          <.list
-            id="demo-list"
-            list-selected={@selected_item}
-            br-change="item_selected"
-            class="width-full height-6"
-          >
-            <:item value="alpha">Alpha</:item>
-            <:item value="bravo">Bravo</:item>
-            <:item value="charlie">Charlie</:item>
-            <:item value="delta">Delta</:item>
-          </.list>
-
-          <box class="height-1"></box>
-          <box class="text-primary bold">Tree</box>
-          <.tree
-            id="demo-tree"
-            nodes={@nodes}
-            selected={@selected_node}
-            expanded={@expanded_nodes}
-            br-change="node_selected"
-            class="width-full height-7"
-          />
-
-          <box class="height-1"></box>
-          <box class="text-primary bold">Table</box>
-          <.table
-            id="demo-table"
-            rows={@cities}
-            selected={@selected_city}
-            br-change="city_selected"
-            class="width-full height-7"
-          >
-            <:col :let={row} label="City" width={12}>{row.city}</:col>
-            <:col :let={row} label="Status" width={10}>{row.status}</:col>
-          </.table>
-        </box>
-
-        <box
-          :if={@section == "content"}
-          class="padding-top-1 padding-left-1 padding-right-2 width-full bg-panel"
-        >
-          <box class="text-primary bold">Panel</box>
-          <.panel id="demo-panel" class="width-full height-4">
-            <:title>Composed surface</:title>
-            <box>Panels group related content.</box>
-            <box class="text-muted">The border responds when focus moves inside.</box>
-          </.panel>
-
-          <box class="height-1"></box>
-          <box class="text-primary bold">Scroll</box>
-          <.scroll
-            id="demo-scroll"
-            class="width-full height-5 border bg-panel focus:scrollbar-primary"
-          >
-            <box :for={line <- @log_lines}>{line}</box>
-          </.scroll>
-
-          <box class="height-1"></box>
-          <box class="text-primary bold">Markdown</box>
-          <.markdown
-            id="demo-markdown"
-            content={@markdown}
-            width={@markdown_width}
-            class="width-full height-6 bg-panel focus:scrollbar-primary"
-          />
-        </box>
-
-        <box
-          :if={@section == "feedback"}
-          class="padding-1 padding-right-2 width-full bg-panel"
-        >
-          <box class="text-primary bold">Flash group</box>
-          <box class="text-muted width-full">
-            Flash messages are fixed overlays, so they do not disturb the layout.
-          </box>
-          <box class="inline width-full height-1">
-            <.button id="show-flash" class="width-16">Show flash</.button>
-            <box class="width-1"></box>
-            <.button id="clear-flash" class="width-16">Clear flash</.button>
-          </box>
-
-          <box class="height-1"></box>
-          <box class="text-primary bold">Modal</box>
-          <box class="text-muted width-full">
-            The modal traps focus and closes with Escape or its action button.
-          </box>
-          <.button id="open-modal" class="width-16">Open modal</.button>
-
-          <box class="height-1"></box>
-          <box class="text-primary bold">Tabs and keybinding bar</box>
-          <box class="text-muted width-full">
-            Tabs navigate this gallery; the keybinding bar remains visible below it.
-          </box>
-        </box>
-      </.scroll>
     </box>
+    """
+  end
+
+  attr :checked, :boolean, required: true
+  attr :method, :string, required: true
+  attr :name, :string, required: true
+  attr :notes, :string, required: true
+  attr :action_count, :integer, required: true
+
+  defp controls_tab(assigns) do
+    ~H"""
+    <.scroll
+      id="gallery-tabs-panel-controls"
+      class="width-full height-full bg-panel focus:scrollbar-primary"
+    >
+      <box class="padding-1 padding-right-2 width-full bg-panel">
+        <box class="text-primary bold">Button</box>
+        <box class="inline width-full height-1">
+          <.button id="demo-primary" class="width-16">Run action</.button>
+          <box class="width-1"></box>
+          <.button id="demo-reset" class="width-12 bg-error">Reset</.button>
+        </box>
+        <box class="text-muted">Actions triggered: {@action_count}</box>
+
+        <box class="height-1"></box>
+        <box class="text-primary bold">Checkbox</box>
+        <.checkbox id="demo-checkbox" checked={@checked} br-change="checked_changed">
+          Enable previews
+        </.checkbox>
+        <.checkbox id="demo-checkbox-disabled" checked disabled>
+          Disabled state
+        </.checkbox>
+
+        <box class="height-1"></box>
+        <box class="text-primary bold">Dropdown</box>
+        <.dropdown
+          id="demo-dropdown"
+          selected={@method}
+          br-change="method_changed"
+          class="width-24"
+        >
+          <:item value="GET">GET</:item>
+          <:item value="POST">POST</:item>
+          <:item value="PATCH">PATCH</:item>
+        </.dropdown>
+
+        <box class="height-1"></box>
+        <box class="text-primary bold">Input</box>
+        <.input
+          id="demo-input"
+          input-value={@name}
+          input-placeholder="Your name"
+          br-change="name_changed"
+          class="width-full"
+        />
+
+        <box class="height-1"></box>
+        <box class="text-primary bold">Textarea</box>
+        <.textarea
+          id="demo-textarea"
+          textarea-value={@notes}
+          textarea-placeholder="Add some notes"
+          br-change="notes_changed"
+          class="width-full height-4"
+        />
+      </box>
+    </.scroll>
+    """
+  end
+
+  attr :selected_item, :string, required: true
+  attr :selected_node, :string, required: true
+  attr :expanded_nodes, :list, required: true
+  attr :selected_city, :string, required: true
+
+  defp collections_tab(assigns) do
+    ~H"""
+    <.scroll
+      id="gallery-tabs-panel-collections"
+      class="width-full height-full bg-panel focus:scrollbar-primary"
+    >
+      <box class="padding-1 padding-right-2 width-full bg-panel">
+        <box class="text-primary bold">List</box>
+        <.list
+          id="demo-list"
+          list-selected={@selected_item}
+          br-change="item_selected"
+          class="width-full height-6"
+        >
+          <:item value="alpha">Alpha</:item>
+          <:item value="bravo">Bravo</:item>
+          <:item value="charlie">Charlie</:item>
+          <:item value="delta">Delta</:item>
+        </.list>
+
+        <box class="height-1"></box>
+        <box class="text-primary bold">Tree</box>
+        <.tree
+          id="demo-tree"
+          nodes={nodes()}
+          selected={@selected_node}
+          expanded={@expanded_nodes}
+          br-change="node_selected"
+          class="width-full height-7"
+        />
+
+        <box class="height-1"></box>
+        <box class="text-primary bold">Table</box>
+        <.table
+          id="demo-table"
+          rows={cities()}
+          selected={@selected_city}
+          br-change="city_selected"
+          class="width-full height-7"
+        >
+          <:col :let={row} label="City" width={12}>{row.city}</:col>
+          <:col :let={row} label="Status" width={10}>{row.status}</:col>
+        </.table>
+      </box>
+    </.scroll>
+    """
+  end
+
+  attr :terminal_width, :integer, required: true
+
+  defp content_tab(assigns) do
+    assigns = assign(assigns, markdown_width: max(min(assigns.terminal_width - 8, 64), 20))
+
+    ~H"""
+    <.scroll
+      id="gallery-tabs-panel-content"
+      class="width-full height-full bg-panel focus:scrollbar-primary"
+    >
+      <box class="padding-top-1 padding-left-1 padding-right-2 width-full bg-panel">
+        <box class="text-primary bold">Panel</box>
+        <.panel id="demo-panel" class="width-full height-4">
+          <:title>Composed surface</:title>
+          <box>Panels group related content.</box>
+          <box class="text-muted">The border responds when focus moves inside.</box>
+        </.panel>
+
+        <box class="height-1"></box>
+        <box class="text-primary bold">Scroll</box>
+        <.scroll
+          id="demo-scroll"
+          class="width-full height-5 border bg-panel focus:scrollbar-primary"
+        >
+          <box :for={line <- 1..12}>Rendered log line {line}</box>
+        </.scroll>
+
+        <box class="height-1"></box>
+        <box class="text-primary bold">Markdown</box>
+        <.markdown
+          id="demo-markdown"
+          content={markdown()}
+          width={@markdown_width}
+          class="width-full height-6 bg-panel focus:scrollbar-primary"
+        />
+      </box>
+    </.scroll>
+    """
+  end
+
+  defp feedback_tab(assigns) do
+    ~H"""
+    <.scroll
+      id="gallery-tabs-panel-feedback"
+      class="width-full height-full bg-panel focus:scrollbar-primary"
+    >
+      <box class="padding-1 padding-right-2 width-full bg-panel">
+        <box class="text-primary bold">Flash group</box>
+        <box class="text-muted width-full">
+          Flash messages are fixed overlays, so they do not disturb the layout.
+        </box>
+        <box class="inline width-full height-1">
+          <.button id="show-flash" class="width-16">Show flash</.button>
+          <box class="width-1"></box>
+          <.button id="clear-flash" class="width-16">Clear flash</.button>
+        </box>
+
+        <box class="height-1"></box>
+        <box class="text-primary bold">Modal</box>
+        <box class="text-muted width-full">
+          The modal traps focus and closes with Escape or its action button.
+        </box>
+        <.button id="open-modal" class="width-16">Open modal</.button>
+
+        <box class="height-1"></box>
+        <box class="text-primary bold">Tabs and keybinding bar</box>
+        <box class="text-muted width-full">
+          Tabs navigate this gallery; the keybinding bar remains visible below it.
+        </box>
+      </box>
+    </.scroll>
+    """
+  end
+
+  defp nodes do
+    [
+      %{
+        id: "lib",
+        label: "lib",
+        children: [
+          %{id: "view", label: "view.ex"},
+          %{id: "kitchen-sink", label: "kitchen_sink.ex"}
+        ]
+      },
+      %{
+        id: "test",
+        label: "test",
+        children: [%{id: "view-test", label: "view_test.exs"}]
+      },
+      %{id: "mix", label: "mix.exs"}
+    ]
+  end
+
+  defp cities do
+    [
+      %{id: "london", city: "London", status: "Ready"},
+      %{id: "tokyo", city: "Tokyo", status: "Busy"},
+      %{id: "oslo", city: "Oslo", status: "Ready"},
+      %{id: "lisbon", city: "Lisbon", status: "Idle"}
+    ]
+  end
+
+  defp markdown do
+    """
+    # Markdown
+
+    Breeze supports **emphasis**, `inline code`, links, lists, and fenced code.
+
+    - Keyboard scrolling
+    - Terminal-aware wrapping
+    - Theme-aware syntax
+
+    ```elixir
+    {:ok, term}
+    ```
     """
   end
 end

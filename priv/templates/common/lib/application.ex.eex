@@ -4,25 +4,42 @@ defmodule <%= @module_name %>.Application do
   @impl true
   def start(_type, _args) do
     children = if start_server?(), do: [breeze_child()], else: []
-    Supervisor.start_link(children, strategy: :one_for_one, name: <%= @module_name %>.Supervisor)
-  end
 
-  defp breeze_child do
-    Supervisor.child_spec(
-      {Breeze.Server,
-       view: <%= @module_name %>.View,
-       theme: <%= @theme %>,
-       mouse: <%= inspect(@mouse) %>,
-       inspector: Application.get_env(:<%= @app_name %>, :inspector, false),
-       logger: Application.get_env(:<%= @app_name %>, :logger, false),
-       reload: Application.get_env(:<%= @app_name %>, :reload, false),
-       render_errors: Application.get_env(:<%= @app_name %>, :render_errors, []),
-       global_keybindings: [
-         <%= @theme_keybinding %>{"q", "Quit", fn _event, term -> {:stop, term} end}
-       ]},
-      restart: :temporary
+    # Shut down the application when the Breeze view exits.
+    # https://www.erlang.org/doc/system/sup_princ.html#all_significant
+    Supervisor.start_link(children,
+      strategy: :one_for_one,
+      auto_shutdown: :any_significant,
+      name: <%= @module_name %>.Supervisor
     )
   end
 
-<%= if @theme_cycle_handler == "", do: "", else: @theme_cycle_handler <> "\n\n" %>  defp start_server?, do: Application.get_env(:<%= @app_name %>, :start_server, true)
+  defp breeze_child do
+    breeze_opts = [
+      view: <%= @module_name %>.View,
+      theme: <%= @theme %>,
+      mouse: <%= inspect(@mouse) %>,
+      inspector: Application.get_env(:<%= @app_name %>, :inspector, false),
+      logger: Application.get_env(:<%= @app_name %>, :logger, false),
+      reload: Application.get_env(:<%= @app_name %>, :reload, false),
+      render_errors: Application.get_env(:<%= @app_name %>, :render_errors, []),
+      global_keybindings: [
+        <%= @theme_keybinding %>{"q", "Quit", fn _event, term -> {:stop, term} end}
+      ]
+    ]
+
+    Supervisor.child_spec(
+      {Breeze.Server, breeze_opts},
+      restart: :temporary,
+      significant: true
+    )
+  end
+
+  @impl true
+  def stop(_state) do
+    System.stop(0)
+    :ok
+  end
+
+  defp start_server?, do: Application.get_env(:<%= @app_name %>, :start_server, true)
 end

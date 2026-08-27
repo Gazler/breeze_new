@@ -94,7 +94,7 @@ defmodule BreezeNew.CLITest do
 
     assert config.template == :list
     assert config.timeline
-    assert config.breeze_dep == {:hex, "~> 0.5.0"}
+    assert config.breeze_dep == {:hex, "~> 0.5.1"}
 
     assert {:error, message} =
              CLI.parse([
@@ -120,7 +120,8 @@ defmodule BreezeNew.CLITest do
       end)
 
     assert output =~ "mix termite.ssh.gen_host_key"
-    assert output =~ "mix run --no-halt"
+    assert output =~ "mix run"
+    refute output =~ "--no-halt"
     assert output =~ "Or run the view locally without SSH:"
     assert output =~ "mix #{app_name}.local"
   end
@@ -142,7 +143,8 @@ defmodule BreezeNew.CLITest do
         ])
       end)
 
-    assert output =~ "mix run --no-halt"
+    assert output =~ "mix run"
+    refute output =~ "--no-halt"
     assert output =~ "Inspect and rewind it from another terminal:"
     assert output =~ "mix breeze.inspector"
   end

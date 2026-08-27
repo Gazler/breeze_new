@@ -30,4 +30,4 @@ defmodule <%= @module_name %>.Server do
       overrides
     )
   end
-<%= if @theme_cycle_handler == "", do: "", else: "\n" <> @theme_cycle_handler <> "\n" %>end
+end

@@ -69,7 +69,6 @@ defmodule BreezeNew.Template do
     "common/fragments/render_cache_fixed.config.eex",
     "common/fragments/render_cache_dynamic.md.eex",
     "common/fragments/render_cache_fixed.md.eex",
-    "common/fragments/theme_cycle_handler.ex.eex",
     "projects/kitchen_sink/fragments/README.md.eex"
   ]
 
@@ -138,7 +137,6 @@ defmodule BreezeNew.Template do
       theme_cycle: config.theme_cycle,
       elixir_requirement: elixir_requirement(),
       theme_name: inspect(config.theme),
-      initial_theme: inspect(config.theme),
       env_prefix: String.upcase(config.app_name),
       breeze_dep: dependency(:breeze, config.breeze_dep),
       timeline_dependency: timeline_dependency(config),
@@ -146,15 +144,14 @@ defmodule BreezeNew.Template do
       live_reload_dependency: live_reload_dependency(config.live_reload),
       extra_applications: extra_applications(config.cache_size),
       theme: theme(config.theme),
-      theme_keybinding: theme_keybinding(config.theme_cycle, 9),
+      theme_keybinding: theme_keybinding(config.theme_cycle, 8),
       ssh_theme_keybinding: theme_keybinding(config.theme_cycle, 10)
     ]
 
     Keyword.merge(base,
       render_cache_config: render_cache_config(config, base),
       render_cache_readme: render_cache_readme(config, base),
-      starter_readme: starter_readme(config, base),
-      theme_cycle_handler: theme_cycle_handler(config, base)
+      starter_readme: starter_readme(config, base)
     )
   end
 
@@ -195,14 +192,6 @@ defmodule BreezeNew.Template do
 
   defp starter_readme(_config, _assigns), do: ""
 
-  defp theme_cycle_handler(%Config{theme_cycle: true}, assigns) do
-    "common/fragments/theme_cycle_handler.ex.eex"
-    |> render_fragment(assigns)
-    |> indent(2)
-  end
-
-  defp theme_cycle_handler(_config, _assigns), do: ""
-
   defp extra_applications(:dynamic), do: inspect([:logger, :os_mon])
   defp extra_applications(_size), do: inspect([:logger])
 
@@ -220,7 +209,7 @@ defmodule BreezeNew.Template do
   defp theme(theme), do: "Breeze.Theme.builtin(#{inspect(theme)})"
 
   defp theme_keybinding(true, indentation) do
-    "{\"F3\", \"Cycle theme\", &__MODULE__.cycle_theme/2},\n" <>
+    "{\"F3\", \"Cycle theme\", &Breeze.View.cycle_theme/2},\n" <>
       String.duplicate(" ", indentation)
   end
 
@@ -238,15 +227,4 @@ defmodule BreezeNew.Template do
   end
 
   defp render_path(path, assigns), do: EEx.eval_string(path, assigns: assigns)
-
-  defp indent(content, spaces) do
-    prefix = String.duplicate(" ", spaces)
-
-    content
-    |> String.split("\n")
-    |> Enum.map_join("\n", fn
-      "" -> ""
-      line -> prefix <> line
-    end)
-  end
 end

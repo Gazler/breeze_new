@@ -58,7 +58,7 @@ defmodule BreezeNew.WizardTest do
     assert config.deps_get
     refute config.mouse
     assert config.timeline
-    assert config.breeze_dep == {:hex, "~> 0.5.0"}
+    assert config.breeze_dep == {:hex, "~> 0.5.1"}
     refute config.live_reload
     refute config.storybook
     assert get_in(Breeze.Test.metadata(session), [:assigns, :breeze, :theme, :name]) == :system
@@ -196,7 +196,7 @@ defmodule BreezeNew.WizardTest do
       Breeze.Test.event(session, "timeline_changed", %{value: true})
 
       assert Breeze.Test.metadata(session).assigns.config.timeline
-      assert Breeze.Test.metadata(session).assigns.config.breeze_dep == {:hex, "~> 0.5.0"}
+      assert Breeze.Test.metadata(session).assigns.config.breeze_dep == {:hex, "~> 0.5.1"}
 
       assert Breeze.Test.metadata(session).assigns.config.template ==
                String.to_existing_atom(template)
@@ -410,7 +410,7 @@ defmodule BreezeNew.WizardTest do
     assert_receive {:breeze_new, {:generate, config}}
     assert config.template == :list
     assert config.timeline
-    assert config.breeze_dep == {:hex, "~> 0.5.0"}
+    assert config.breeze_dep == {:hex, "~> 0.5.1"}
     refute Process.alive?(session.pid)
   end
 

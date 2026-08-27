@@ -8,7 +8,7 @@ defmodule BreezeNew.MixProject do
   def project do
     [
       app: :breeze_new,
-      version: @breeze_requirement,
+      version: @breeze_version,
       description: "A TUI project generator for Breeze applications",
       elixir: "~> 1.16",
       start_permanent: Mix.env() == :prod,
@@ -19,7 +19,6 @@ defmodule BreezeNew.MixProject do
       docs: [
         source_ref: "v#{@breeze_version}",
         extras: [
-          "CHANGELOG.md",
           "README.md"
         ]
       ]

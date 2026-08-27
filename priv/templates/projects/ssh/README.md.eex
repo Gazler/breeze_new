@@ -14,7 +14,7 @@ mix termite.ssh.gen_host_key
 Start the SSH listener:
 
 ```bash
-mix run --no-halt
+mix run
 ```
 
 Development binds to `localhost:2222` with authentication explicitly
@@ -62,7 +62,7 @@ export <%= @env_prefix %>_SSH_USER=alice
 export <%= @env_prefix %>_SSH_AUTHORIZED_KEYS_DIR=/srv/<%= @app_name %>/users/alice
 export <%= @env_prefix %>_SSH_SYSTEM_DIR=/srv/<%= @app_name %>/host_keys
 export <%= @env_prefix %>_SSH_PORT=2222 # optional
-MIX_ENV=prod mix run --no-halt
+MIX_ENV=prod mix run
 ```
 
 `<%= @env_prefix %>_SSH_AUTHORIZED_KEYS_DIR` must name a directory containing

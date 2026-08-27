@@ -139,7 +139,7 @@ defmodule BreezeNew.CLI do
 
         write_line(
           :stdio,
-          "\nNext steps:\n  cd #{Path.relative_to_cwd(result.target)}#{deps_step}#{ssh_setup_step(config)}\n  mix run --no-halt#{local_run_step(config)}#{timeline_run_step(config)}",
+          "\nNext steps:\n  cd #{Path.relative_to_cwd(result.target)}#{deps_step}#{ssh_setup_step(config)}\n  mix run#{local_run_step(config)}#{timeline_run_step(config)}",
           tui?
         )
 

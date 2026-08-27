@@ -97,7 +97,7 @@ defmodule <%= @module_name %>.View do
 
   @impl true
   def handle_event("section_changed", %{value: value}, term) do
-    if Enum.any?(KitchenSink.sections(), &(&1.id == value)) do
+    if KitchenSink.section?(value) do
       {:noreply, assign(term, section: value)}
     else
       {:noreply, term}

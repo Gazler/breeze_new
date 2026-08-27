@@ -41,7 +41,7 @@ Run `breeze_new --help` for every option.
 ```bash
 cd my_app
 mix deps.get
-mix run --no-halt
+mix run
 ```
 
 Generated projects include a Breeze view test, environment-specific
@@ -73,7 +73,7 @@ and connect without authentication on the loopback interface:
 
 ```bash
 mix termite.ssh.gen_host_key
-mix run --no-halt
+mix run
 ssh -o PreferredAuthentications=none -o PubkeyAuthentication=no -p 2222 demo@localhost
 ```
 
