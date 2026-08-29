@@ -34,7 +34,7 @@ defmodule <%= @module_name %>.Stories.MetricStory do
       end
 
     ~H"""
-    <box class="padding-1 width-full bg-panel">
+    <box class="p-1 w-full bg-panel">
       <.metric label={@label} value={@value}/>
     </box>
     """

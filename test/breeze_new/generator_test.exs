@@ -75,7 +75,7 @@ defmodule BreezeNew.GeneratorTest do
         refute dev_config =~ "storybook_theme"
       else
         assert view_file =~
-                 ~s(class="inline width-full height-1 overflow-hidden bg-panel padding-left-1 padding-right-1")
+                 ~s(class="inline w-full h-1 overflow-hidden bg-panel pl-1 pr-1")
 
         component = File.read!(Path.join(target, "lib/sample_app/components.ex"))
         story = File.read!(Path.join(target, "storybook/metric.story.exs"))
@@ -543,10 +543,10 @@ defmodule BreezeNew.GeneratorTest do
     view_source = files["lib/#{app_name}/view.ex"]
 
     assert kitchen_sink_source =~
-             ~s(class="padding-1 padding-right-2 width-full bg-panel")
+             ~s(class="p-1 pr-2 w-full bg-panel")
 
     assert kitchen_sink_source =~
-             ~s(class="width-full height-6 bg-panel focus:scrollbar-primary")
+             ~s(class="w-full h-6 bg-panel focus:scrollbar-primary")
 
     for section <- ~w(controls collections content feedback) do
       assert kitchen_sink_source =~ ~s(<:tab value="#{section}")
@@ -844,7 +844,7 @@ defmodule BreezeNew.GeneratorTest do
     config
   end
 
-  defp expected_marker(:blank), do: ~s(class="width-screen height-screen bg")
+  defp expected_marker(:blank), do: ~s(class="w-screen h-screen bg")
   defp expected_marker(:counter), do: ~s(<.metric label="Counter" value={@counter}/>)
   defp expected_marker(:list), do: ~s(id="tasks")
   defp expected_marker(:kitchen_sink), do: ~s(id="kitchen-sink")

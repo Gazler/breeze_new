@@ -40,13 +40,13 @@ defmodule <%= @module_name %>.KitchenSink do
 
   def gallery(assigns) do
     ~H"""
-    <box class="width-full height-full bg-panel">
+    <box class="w-full h-full bg-panel">
       <.tabs
         id="gallery-tabs"
         selected={@section}
         variant="underline"
         br-change="section_changed"
-        class="width-full height-full bg-panel"
+        class="w-full h-full bg-panel"
       >
         <:tab value="controls" label="Controls">
           <.controls_tab
@@ -86,19 +86,19 @@ defmodule <%= @module_name %>.KitchenSink do
     ~H"""
     <.scroll
       id="gallery-tabs-panel-controls"
-      class="width-full height-full bg-panel focus:scrollbar-primary"
+      class="w-full h-full bg-panel focus:scrollbar-primary"
     >
-      <box class="padding-1 padding-right-2 width-full bg-panel">
-        <box class="text-primary bold">Button</box>
-        <box class="inline width-full height-1">
-          <.button id="demo-primary" class="width-16">Run action</.button>
-          <box class="width-1"></box>
-          <.button id="demo-reset" class="width-12 bg-error">Reset</.button>
+      <box class="p-1 pr-2 w-full bg-panel">
+        <box class="text-primary font-bold">Button</box>
+        <box class="inline w-full h-1">
+          <.button id="demo-primary" class="w-16">Run action</.button>
+          <box class="w-1"></box>
+          <.button id="demo-reset" class="w-12 bg-error">Reset</.button>
         </box>
         <box class="text-muted">Actions triggered: {@action_count}</box>
 
-        <box class="height-1"></box>
-        <box class="text-primary bold">Checkbox</box>
+        <box class="h-1"></box>
+        <box class="text-primary font-bold">Checkbox</box>
         <.checkbox id="demo-checkbox" checked={@checked} br-change="checked_changed">
           Enable previews
         </.checkbox>
@@ -106,37 +106,37 @@ defmodule <%= @module_name %>.KitchenSink do
           Disabled state
         </.checkbox>
 
-        <box class="height-1"></box>
-        <box class="text-primary bold">Dropdown</box>
+        <box class="h-1"></box>
+        <box class="text-primary font-bold">Dropdown</box>
         <.dropdown
           id="demo-dropdown"
           selected={@method}
           br-change="method_changed"
-          class="width-24"
+          class="w-24"
         >
           <:item value="GET">GET</:item>
           <:item value="POST">POST</:item>
           <:item value="PATCH">PATCH</:item>
         </.dropdown>
 
-        <box class="height-1"></box>
-        <box class="text-primary bold">Input</box>
+        <box class="h-1"></box>
+        <box class="text-primary font-bold">Input</box>
         <.input
           id="demo-input"
           input-value={@name}
           input-placeholder="Your name"
           br-change="name_changed"
-          class="width-full"
+          class="w-full"
         />
 
-        <box class="height-1"></box>
-        <box class="text-primary bold">Textarea</box>
+        <box class="h-1"></box>
+        <box class="text-primary font-bold">Textarea</box>
         <.textarea
           id="demo-textarea"
           textarea-value={@notes}
           textarea-placeholder="Add some notes"
           br-change="notes_changed"
-          class="width-full height-4"
+          class="w-full h-4"
         />
       </box>
     </.scroll>
@@ -152,15 +152,15 @@ defmodule <%= @module_name %>.KitchenSink do
     ~H"""
     <.scroll
       id="gallery-tabs-panel-collections"
-      class="width-full height-full bg-panel focus:scrollbar-primary"
+      class="w-full h-full bg-panel focus:scrollbar-primary"
     >
-      <box class="padding-1 padding-right-2 width-full bg-panel">
-        <box class="text-primary bold">List</box>
+      <box class="p-1 pr-2 w-full bg-panel">
+        <box class="text-primary font-bold">List</box>
         <.list
           id="demo-list"
           list-selected={@selected_item}
           br-change="item_selected"
-          class="width-full height-6"
+          class="w-full h-6"
         >
           <:item value="alpha">Alpha</:item>
           <:item value="bravo">Bravo</:item>
@@ -168,25 +168,25 @@ defmodule <%= @module_name %>.KitchenSink do
           <:item value="delta">Delta</:item>
         </.list>
 
-        <box class="height-1"></box>
-        <box class="text-primary bold">Tree</box>
+        <box class="h-1"></box>
+        <box class="text-primary font-bold">Tree</box>
         <.tree
           id="demo-tree"
           nodes={nodes()}
           selected={@selected_node}
           expanded={@expanded_nodes}
           br-change="node_selected"
-          class="width-full height-7"
+          class="w-full h-7"
         />
 
-        <box class="height-1"></box>
-        <box class="text-primary bold">Table</box>
+        <box class="h-1"></box>
+        <box class="text-primary font-bold">Table</box>
         <.table
           id="demo-table"
           rows={cities()}
           selected={@selected_city}
           br-change="city_selected"
-          class="width-full height-7"
+          class="w-full h-7"
         >
           <:col :let={row} label="City" width={12}>{row.city}</:col>
           <:col :let={row} label="Status" width={10}>{row.status}</:col>
@@ -204,32 +204,32 @@ defmodule <%= @module_name %>.KitchenSink do
     ~H"""
     <.scroll
       id="gallery-tabs-panel-content"
-      class="width-full height-full bg-panel focus:scrollbar-primary"
+      class="w-full h-full bg-panel focus:scrollbar-primary"
     >
-      <box class="padding-top-1 padding-left-1 padding-right-2 width-full bg-panel">
-        <box class="text-primary bold">Panel</box>
-        <.panel id="demo-panel" class="width-full height-4">
+      <box class="pt-1 pl-1 pr-2 w-full bg-panel">
+        <box class="text-primary font-bold">Panel</box>
+        <.panel id="demo-panel" class="w-full h-4">
           <:title>Composed surface</:title>
           <box>Panels group related content.</box>
           <box class="text-muted">The border responds when focus moves inside.</box>
         </.panel>
 
-        <box class="height-1"></box>
-        <box class="text-primary bold">Scroll</box>
+        <box class="h-1"></box>
+        <box class="text-primary font-bold">Scroll</box>
         <.scroll
           id="demo-scroll"
-          class="width-full height-5 border bg-panel focus:scrollbar-primary"
+          class="w-full h-5 border bg-panel focus:scrollbar-primary"
         >
           <box :for={line <- 1..12}>Rendered log line {line}</box>
         </.scroll>
 
-        <box class="height-1"></box>
-        <box class="text-primary bold">Markdown</box>
+        <box class="h-1"></box>
+        <box class="text-primary font-bold">Markdown</box>
         <.markdown
           id="demo-markdown"
           content={markdown()}
           width={@markdown_width}
-          class="width-full height-6 bg-panel focus:scrollbar-primary"
+          class="w-full h-6 bg-panel focus:scrollbar-primary"
         />
       </box>
     </.scroll>
@@ -240,29 +240,29 @@ defmodule <%= @module_name %>.KitchenSink do
     ~H"""
     <.scroll
       id="gallery-tabs-panel-feedback"
-      class="width-full height-full bg-panel focus:scrollbar-primary"
+      class="w-full h-full bg-panel focus:scrollbar-primary"
     >
-      <box class="padding-1 padding-right-2 width-full bg-panel">
-        <box class="text-primary bold">Flash group</box>
-        <box class="text-muted width-full">
+      <box class="p-1 pr-2 w-full bg-panel">
+        <box class="text-primary font-bold">Flash group</box>
+        <box class="text-muted w-full">
           Flash messages are fixed overlays, so they do not disturb the layout.
         </box>
-        <box class="inline width-full height-1">
-          <.button id="show-flash" class="width-16">Show flash</.button>
-          <box class="width-1"></box>
-          <.button id="clear-flash" class="width-16">Clear flash</.button>
+        <box class="inline w-full h-1">
+          <.button id="show-flash" class="w-16">Show flash</.button>
+          <box class="w-1"></box>
+          <.button id="clear-flash" class="w-16">Clear flash</.button>
         </box>
 
-        <box class="height-1"></box>
-        <box class="text-primary bold">Modal</box>
-        <box class="text-muted width-full">
+        <box class="h-1"></box>
+        <box class="text-primary font-bold">Modal</box>
+        <box class="text-muted w-full">
           The modal traps focus and closes with Escape or its action button.
         </box>
-        <.button id="open-modal" class="width-16">Open modal</.button>
+        <.button id="open-modal" class="w-16">Open modal</.button>
 
-        <box class="height-1"></box>
-        <box class="text-primary bold">Tabs and keybinding bar</box>
-        <box class="text-muted width-full">
+        <box class="h-1"></box>
+        <box class="text-primary font-bold">Tabs and keybinding bar</box>
+        <box class="text-muted w-full">
           Tabs navigate this gallery; the keybinding bar remains visible below it.
         </box>
       </box>

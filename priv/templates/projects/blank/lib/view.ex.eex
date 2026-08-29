@@ -7,7 +7,7 @@ defmodule <%= @module_name %>.View do
   @impl true
   def render(assigns) do
     ~H"""
-    <box class="width-screen height-screen bg"></box>
+    <box class="w-screen h-screen bg"></box>
     """
   end
 

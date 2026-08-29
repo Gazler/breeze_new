@@ -8,7 +8,7 @@ defmodule <%= @module_name %>.Components do
 
   def metric(assigns) do
     ~H"""
-    <box class="text-primary bold width-full">{@label}: {@value}</box>
+    <box class="text-primary font-bold w-full">{@label}: {@value}</box>
     """
   end
 end

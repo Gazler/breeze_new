@@ -35,6 +35,23 @@ defmodule BreezeNew.TemplateTest do
     end
   end
 
+  test "uses Tailwind-style sizing, spacing, and font utilities" do
+    legacy_utility =
+      ~r/(?<![\w-])(?:width|height|padding(?:-(?:top|right|bottom|left|x|y))?)-/
+
+    for starter <- Config.templates() do
+      target = Path.join(System.tmp_dir!(), "breeze_new_tailwind_#{starter}")
+      {:ok, config} = Config.new("sample_app", target: target, template: starter)
+
+      for {path, contents} <- Template.files(config) do
+        refute contents =~ legacy_utility, "found a legacy utility in #{path}"
+
+        refute Regex.match?(~r/(?<![\w-])bold(?![\w-])/, contents),
+               "found the legacy bold utility in #{path}"
+      end
+    end
+  end
+
   defp regular_files(directory) do
     directory
     |> File.ls!()

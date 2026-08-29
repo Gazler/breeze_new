@@ -36,14 +36,14 @@ defmodule <%= @module_name %>.View do
   @impl true
   def render(assigns) do
     ~H"""
-    <box class="grid grid-cols-1 grid-rows-2 width-screen height-screen bg">
-      <box class="padding-1 width-full height-full">
-        <.panel id="kitchen-sink" class="width-full height-full">
+    <box class="grid grid-cols-1 grid-rows-2 w-screen h-screen bg">
+      <box class="p-1 w-full h-full">
+        <.panel id="kitchen-sink" class="w-full h-full">
           <:title><%= @module_name %> Kitchen Sink</:title>
-          <box class="grid grid-cols-1 grid-rows-2 width-full height-full bg-panel">
-            <box class="height-1 width-full overflow-hidden"><%= if @storybook do %>
+          <box class="grid grid-cols-1 grid-rows-2 w-full h-full bg-panel">
+            <box class="h-1 w-full overflow-hidden"><%= if @storybook do %>
               <.metric label="Built-in components" value={length(KitchenSink.component_names())}/><% else %>
-              <box class="text-primary bold">Built-in components: {length(KitchenSink.component_names())}</box><% end %>
+              <box class="text-primary font-bold">Built-in components: {length(KitchenSink.component_names())}</box><% end %>
             </box>
             <.gallery
               section={@section}
@@ -62,10 +62,10 @@ defmodule <%= @module_name %>.View do
         </.panel>
       </box>
 
-      <box class="height-1 width-full overflow-hidden bg-panel">
+      <box class="h-1 w-full overflow-hidden bg-panel">
         <.keybinding_bar
           keybindings={@breeze.keybindings}
-          class="inline width-full height-1 overflow-hidden bg-panel padding-left-1 padding-right-1"
+          class="inline w-full h-1 overflow-hidden bg-panel pl-1 pr-1"
         />
       </box>
 
@@ -84,11 +84,11 @@ defmodule <%= @module_name %>.View do
         br-change="modal_closed"
       >
         <:title>Kitchen Sink modal</:title>
-        <box class="padding-2 width-full height-full">
-          <box class="bold">This is a real Breeze modal.</box>
-          <box class="text-muted width-full">Focus is trapped until the modal closes.</box>
-          <box class="height-1"></box>
-          <.button id="modal-close" default-focus class="width-14">Close</.button>
+        <box class="p-2 w-full h-full">
+          <box class="font-bold">This is a real Breeze modal.</box>
+          <box class="text-muted w-full">Focus is trapped until the modal closes.</box>
+          <box class="h-1"></box>
+          <.button id="modal-close" default-focus class="w-14">Close</.button>
         </box>
       </.modal>
     </box>
