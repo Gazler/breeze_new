@@ -633,6 +633,39 @@ defmodule BreezeNew.WizardTest do
     assert panel_bottom_row(scrolled) == 10
   end
 
+  test "focused checkboxes delegate scrolling while retaining focus and toggle behavior" do
+    session = start_wizard(size: {40, 12})
+    on_exit(fn -> Breeze.Test.stop(session) end)
+    Breeze.Test.render!(session)
+
+    for id <-
+          ~w(theme-cycle mouse inspector live-reload timeline storybook deps-get dynamic-cache git) do
+      Breeze.ChildServer.set_focus(session.pid, id)
+      config = Breeze.Test.metadata(session).assigns.config
+
+      Breeze.Test.input(session, "Home")
+      Breeze.Test.input(session, "ArrowDown")
+
+      assert {Breeze.Implicit.Scroll, %{offset_y: 1}} =
+               Breeze.Test.metadata(session).implicit_state["wizard-panel"]
+
+      Breeze.Test.input(session, "ArrowUp")
+
+      assert {Breeze.Implicit.Scroll, %{offset_y: 0}} =
+               Breeze.Test.metadata(session).implicit_state["wizard-panel"]
+
+      assert %{focused: ^id, assigns: %{config: ^config}} = Breeze.Test.metadata(session)
+    end
+
+    Breeze.ChildServer.set_focus(session.pid, "theme-cycle")
+    Breeze.Test.input(session, "End")
+    refute Breeze.Test.render!(session) =~ "Project name"
+    Breeze.Test.input(session, " ")
+    refute Breeze.Test.metadata(session).assigns.config.theme_cycle
+    Breeze.Test.input(session, "Enter")
+    assert Breeze.Test.metadata(session).assigns.config.theme_cycle
+  end
+
   test "mouse wheel scrolls the panel content with its scrollbar" do
     session = start_wizard(size: {40, 12})
     on_exit(fn -> Breeze.Test.stop(session) end)

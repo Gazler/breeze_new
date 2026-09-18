@@ -1,7 +1,7 @@
 defmodule BreezeNew.MixProject do
   use Mix.Project
 
-  @breeze_version "0.5.1"
+  @breeze_version "0.5.2"
   @breeze_requirement "~> #{@breeze_version}"
   @back_breeze_requirement "~> 0.4.4"
 

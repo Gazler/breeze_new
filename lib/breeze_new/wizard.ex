@@ -98,6 +98,7 @@ defmodule BreezeNew.Wizard do
             <box class="width-full md:padding-left-16 md:width-54 lg:padding-left-18 lg:width-66">
               <.checkbox
                 id="theme-cycle"
+                br-delegate-events="wizard-panel"
                 class="width-full"
                 checked={@config.theme_cycle}
                 br-change="theme_cycle_changed"
@@ -208,6 +209,7 @@ defmodule BreezeNew.Wizard do
           id="mouse"
           class="width-full bg-panel"
           checked={@config.mouse}
+          br-delegate-events="wizard-panel"
           br-change="mouse_changed"
         >
           Mouse
@@ -216,6 +218,7 @@ defmodule BreezeNew.Wizard do
           id="inspector"
           class="width-full bg-panel"
           checked={@config.inspector}
+          br-delegate-events="wizard-panel"
           br-change="inspector_changed"
         >
           Inspector
@@ -224,6 +227,7 @@ defmodule BreezeNew.Wizard do
           id="live-reload"
           class="width-full bg-panel"
           checked={@config.live_reload}
+          br-delegate-events="wizard-panel"
           br-change="live_reload_changed"
         >
           Live reload
@@ -233,6 +237,7 @@ defmodule BreezeNew.Wizard do
           class="width-full bg-panel"
           checked={@config.timeline}
           disabled={!@config.inspector}
+          br-delegate-events="wizard-panel"
           br-change="timeline_changed"
         >
           Timeline
@@ -242,6 +247,7 @@ defmodule BreezeNew.Wizard do
           class="width-full bg-panel"
           checked={@config.storybook}
           disabled={@config.template == :blank}
+          br-delegate-events="wizard-panel"
           br-change="storybook_changed"
         >
           Storybook
@@ -250,6 +256,7 @@ defmodule BreezeNew.Wizard do
           id="deps-get"
           class="width-full bg-panel"
           checked={@config.deps_get}
+          br-delegate-events="wizard-panel"
           br-change="deps_get_changed"
         >
           {wide_label(@breakpoint, "Run mix deps.get", "Fetch deps")}
@@ -268,6 +275,7 @@ defmodule BreezeNew.Wizard do
     <.form_row label="Cache">
       <.checkbox
         id="dynamic-cache"
+                br-delegate-events="wizard-panel"
         class="width-full"
         checked={@config.cache_size == :dynamic}
         br-change="dynamic_cache_changed"
@@ -299,6 +307,7 @@ defmodule BreezeNew.Wizard do
     <.form_row label="Git">
       <.checkbox
         id="git"
+                br-delegate-events="wizard-panel"
         class="width-full"
         checked={@config.init_git}
         br-change="git_changed"
